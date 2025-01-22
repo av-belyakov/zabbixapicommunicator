@@ -4,30 +4,25 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
-	"runtime"
+	"sync"
 	"time"
 )
 
-// Start запуск обработчика заапросов к Zabbix
-func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, recipient <-chan Messager) error {
-	countEvents := len(events)
-	if countEvents == 0 {
-		_, f, l, _ := runtime.Caller(0)
-		return fmt.Errorf("'invalid configuration file for Zabbix, the number of event types (ZABBIX.zabbixHosts.eventTypes) is 0' %s:%d", f, l-1)
+// Start обработчик запросов, от внешних модулей, которые необходимо передать в Zabbix
+func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRecipient <-chan Messager) error {
+	if len(events) == 0 {
+		return errors.New("invalid configuration file for Zabbix, the number of event types (ZABBIX.zabbixHosts.eventTypes) is 0")
 	}
 
-	listChans := make(map[string]chan<- string, countEvents)
+	listChans := make(map[string]chan<- string, len(events))
 
+	var wg sync.WaitGroup
 	go func() {
-		<-ctx.Done()
-
-		for _, channel := range listChans {
-			close(channel)
-		}
-		listChans = nil
+		wg.Wait()
 
 		close(zc.chanErr)
 	}()
@@ -40,35 +35,36 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, recip
 		newChan := make(chan string)
 		listChans[v.EventType] = newChan
 
-		go func(cm <-chan string, zkey string, hs Handshake) {
-			var t *time.Ticker
-			if hs.TimeInterval > 0 && hs.Message != "" {
-				t = time.NewTicker(time.Duration(hs.TimeInterval) * time.Minute)
-				defer t.Stop()
+		wg.Add(1)
+		go func(chMsg <-chan string, zKey string, handshake Handshake) {
+			defer wg.Done()
+
+			var ticker *time.Ticker
+			if handshake.TimeInterval > 0 && handshake.Message != "" {
+				ticker = time.NewTicker(time.Duration(handshake.TimeInterval) * time.Minute)
+				defer ticker.Stop()
 			}
 
-			if t == nil {
-				for msg := range cm {
-					if _, err := zc.sendData(zkey, []string{msg}); err != nil {
+			if ticker == nil {
+				for msg := range chMsg {
+					if _, err := zc.sendData(zKey, []string{msg}); err != nil {
 						zc.chanErr <- err
 					}
 				}
 			} else {
 				for {
 					select {
-					case <-t.C:
-						if _, err := zc.sendData(zkey, []string{hs.Message}); err != nil {
+					case <-ticker.C:
+						if _, err := zc.sendData(zKey, []string{handshake.Message}); err != nil {
 							zc.chanErr <- err
 						}
 
-					case msg, open := <-cm:
+					case msg, open := <-chMsg:
 						if !open {
-							cm = nil
-
 							return
 						}
 
-						if _, err := zc.sendData(zkey, []string{msg}); err != nil {
+						if _, err := zc.sendData(zKey, []string{msg}); err != nil {
 							zc.chanErr <- err
 						}
 					}
@@ -78,9 +74,25 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, recip
 	}
 
 	go func() {
-		for msg := range recipient {
-			if c, ok := listChans[msg.GetType()]; ok {
-				c <- msg.GetMessage()
+		defer func() {
+			for _, channel := range listChans {
+				close(channel)
+			}
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case msg, open := <-chRecipient:
+				if !open {
+					return
+				}
+
+				if ch, ok := listChans[msg.GetType()]; ok {
+					ch <- msg.GetMessage()
+				}
 			}
 		}
 	}()
