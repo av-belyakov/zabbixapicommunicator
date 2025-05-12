@@ -28,7 +28,7 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 
 		go func(ctx context.Context, key string, handshake Handshake, ch <-chan string) {
 			var ticker *time.Ticker
-			if handshake.TimeInterval > 0 && handshake.Message != "" {
+			if handshake.TimeInterval > 0 {
 				ticker = time.NewTicker(time.Duration(handshake.TimeInterval) * time.Minute)
 				defer ticker.Stop()
 			}
