@@ -35,9 +35,7 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 
 			if ticker == nil {
 				for msg := range ch {
-					if _, err := zc.sendData(ctx, key, []string{msg}); err != nil {
-						zc.chanErr <- err
-					}
+					go zc.sendData(ctx, key, []string{msg})
 				}
 
 				return
@@ -49,18 +47,14 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 					return
 
 				case <-ticker.C:
-					if _, err := zc.sendData(ctx, key, []string{handshake.Message}); err != nil {
-						zc.chanErr <- err
-					}
+					go zc.sendData(ctx, key, []string{handshake.Message})
 
 				case msg, open := <-ch:
 					if !open {
 						return
 					}
 
-					if _, err := zc.sendData(ctx, key, []string{msg}); err != nil {
-						zc.chanErr <- err
-					}
+					go zc.sendData(ctx, key, []string{msg})
 				}
 			}
 		}(ctx, v.ZabbixKey, v.Handshake, newChan)
@@ -134,9 +128,11 @@ func (s *MessageSettings) SetMessage(v string) {
 }
 
 // sendData метод реализующий отправку данных в Zabbix
-func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []string) (int, error) {
+func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []string) {
 	if len(data) == 0 {
-		return 0, fmt.Errorf("the list of transmitted data should not be empty")
+		zc.chanErr <- errors.New("the list of transmitted data should not be empty")
+
+		return
 	}
 
 	dataZabbix := make([]DataZabbix, len(data))
@@ -153,7 +149,9 @@ func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []str
 		Data:    dataZabbix,
 	})
 	if err != nil {
-		return 0, err
+		zc.chanErr <- err
+
+		return
 	}
 
 	//заголовок пакета
@@ -169,14 +167,16 @@ func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []str
 	var d net.Dialer = net.Dialer{Timeout: zc.connTimeout}
 	conn, err := d.DialContext(ctx, zc.netProto, fmt.Sprintf("%s:%d", zc.host, zc.port))
 	if err != nil {
-		return 0, err
+		zc.chanErr <- err
+
+		return
 	}
 	defer conn.Close()
 
-	num, err := conn.Write(pkg)
+	_, err = conn.Write(pkg)
 	if err != nil {
-		return num, err
-	}
+		zc.chanErr <- err
 
-	return num, nil
+		return
+	}
 }
