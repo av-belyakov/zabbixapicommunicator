@@ -6,9 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
-	"sync"
 	"time"
 )
 
@@ -18,14 +16,7 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 		return errors.New("invalid configuration file for Zabbix, the number of event types (ZABBIX.zabbixHosts.eventTypes) is 0")
 	}
 
-	listChans := make(map[string]chan<- string, len(events))
-
-	var wg sync.WaitGroup
-	go func() {
-		wg.Wait()
-
-		close(zc.chanErr)
-	}()
+	listChans := map[string]chan string{}
 
 	for _, v := range events {
 		if !v.IsTransmit {
@@ -35,10 +26,7 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 		newChan := make(chan string)
 		listChans[v.EventType] = newChan
 
-		wg.Add(1)
-		go func(chMsg <-chan string, zKey string, handshake Handshake) {
-			defer wg.Done()
-
+		go func(ctx context.Context, key string, handshake Handshake, ch <-chan string) {
 			var ticker *time.Ticker
 			if handshake.TimeInterval > 0 && handshake.Message != "" {
 				ticker = time.NewTicker(time.Duration(handshake.TimeInterval) * time.Minute)
@@ -46,51 +34,71 @@ func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRec
 			}
 
 			if ticker == nil {
-				for msg := range chMsg {
-					if _, err := zc.sendData(zKey, []string{msg}); err != nil {
+				for msg := range ch {
+					if _, err := zc.sendData(ctx, key, []string{msg}); err != nil {
 						zc.chanErr <- err
 					}
 				}
-			} else {
-				for {
-					select {
-					case <-ticker.C:
-						if _, err := zc.sendData(zKey, []string{handshake.Message}); err != nil {
-							zc.chanErr <- err
-						}
 
-					case msg, open := <-chMsg:
-						if !open {
-							return
-						}
+				return
+			}
 
-						if _, err := zc.sendData(zKey, []string{msg}); err != nil {
-							zc.chanErr <- err
-						}
+			for {
+				select {
+				case <-ctx.Done():
+					return
+
+				case <-ticker.C:
+					if _, err := zc.sendData(ctx, key, []string{handshake.Message}); err != nil {
+						zc.chanErr <- err
+					}
+
+				case msg, open := <-ch:
+					if !open {
+						return
+					}
+
+					if _, err := zc.sendData(ctx, key, []string{msg}); err != nil {
+						zc.chanErr <- err
 					}
 				}
 			}
-		}(newChan, v.ZabbixKey, v.Handshake)
+		}(ctx, v.ZabbixKey, v.Handshake, newChan)
 	}
 
+	//обработка входящих сообщений
 	go func() {
 		defer func() {
 			for _, channel := range listChans {
+				if channel == nil {
+					continue
+				}
+
 				close(channel)
 			}
+
+			close(zc.chanErr)
 		}()
 
 		for {
 			select {
 			case <-ctx.Done():
+				zc.chanErr <- errors.New("context stop")
+
 				return
 
 			case msg, open := <-chRecipient:
 				if !open {
+					zc.chanErr <- errors.New("the channel for receiving messages coming to the module has been closed")
+
 					return
 				}
 
 				if ch, ok := listChans[msg.GetType()]; ok {
+					if ch == nil {
+						continue
+					}
+
 					ch <- msg.GetMessage()
 				}
 			}
@@ -126,23 +134,23 @@ func (s *MessageSettings) SetMessage(v string) {
 }
 
 // sendData метод реализующий отправку данных в Zabbix
-func (zc *ZabbixConnection) sendData(zkey string, data []string) (int, error) {
+func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []string) (int, error) {
 	if len(data) == 0 {
 		return 0, fmt.Errorf("the list of transmitted data should not be empty")
 	}
 
-	ldz := make([]DataZabbix, 0, len(data))
+	dataZabbix := make([]DataZabbix, len(data))
 	for _, v := range data {
-		ldz = append(ldz, DataZabbix{
+		dataZabbix = append(dataZabbix, DataZabbix{
 			Host:  zc.zabbixHost,
-			Key:   zkey,
+			Key:   key,
 			Value: v,
 		})
 	}
 
-	jsonReg, err := json.Marshal(PatternZabbix{
+	reg, err := json.Marshal(PatternZabbix{
 		Request: "sender data",
-		Data:    ldz,
+		Data:    dataZabbix,
 	})
 	if err != nil {
 		return 0, err
@@ -153,15 +161,12 @@ func (zc *ZabbixConnection) sendData(zkey string, data []string) (int, error) {
 
 	//длинна пакета с данными
 	dataLen := make([]byte, 8)
-	binary.LittleEndian.PutUint32(dataLen, uint32(len(jsonReg)))
+	binary.LittleEndian.PutUint32(dataLen, uint32(len(reg)))
 
 	pkg = append(pkg, dataLen...)
-	pkg = append(pkg, jsonReg...)
+	pkg = append(pkg, reg...)
 
-	var d net.Dialer = net.Dialer{}
-	ctx, cancel := context.WithTimeout(context.Background(), *zc.connTimeout)
-	defer cancel()
-
+	var d net.Dialer = net.Dialer{Timeout: zc.connTimeout}
 	conn, err := d.DialContext(ctx, zc.netProto, fmt.Sprintf("%s:%d", zc.host, zc.port))
 	if err != nil {
 		return 0, err
@@ -169,11 +174,6 @@ func (zc *ZabbixConnection) sendData(zkey string, data []string) (int, error) {
 	defer conn.Close()
 
 	num, err := conn.Write(pkg)
-	if err != nil {
-		return 0, err
-	}
-
-	_, err = io.ReadAll(conn)
 	if err != nil {
 		return num, err
 	}

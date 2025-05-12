@@ -35,7 +35,7 @@ func New(settings SettingsZabbixConnection) (*ZabbixConnection, error) {
 		port:        settings.Port,
 		netProto:    settings.NetProto,
 		zabbixHost:  settings.ZabbixHost,
-		connTimeout: settings.ConnectionTimeout,
+		connTimeout: *settings.ConnectionTimeout,
 		chanErr:     make(chan error),
 	}
 
