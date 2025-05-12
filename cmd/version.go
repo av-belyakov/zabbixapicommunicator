@@ -2,5 +2,5 @@ package zabbixapicommunicator
 
 // GetPackageVersion
 func GetPackageVersion() string {
-	return "0.1.14"
+	return "0.1.15"
 }
