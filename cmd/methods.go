@@ -164,8 +164,11 @@ func (zc *ZabbixConnection) sendData(ctx context.Context, key string, data []str
 	pkg = append(pkg, dataLen...)
 	pkg = append(pkg, reg...)
 
+	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	var d net.Dialer = net.Dialer{Timeout: zc.connTimeout}
-	conn, err := d.DialContext(ctx, zc.netProto, fmt.Sprintf("%s:%d", zc.host, zc.port))
+	conn, err := d.DialContext(ctxTimeout, zc.netProto, fmt.Sprintf("%s:%d", zc.host, zc.port))
 	if err != nil {
 		zc.chanErr <- err
 
