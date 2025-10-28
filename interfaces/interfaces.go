@@ -1,4 +1,4 @@
-package zabbixapicommunicator
+package interfaces
 
 type Messager interface {
 	GetType() string

@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"net"
 	"time"
+
+	"github.com/av-belyakov/zabbixapicommunicator/v2/interfaces"
 )
 
 // Start обработчик запросов, от внешних модулей, которые необходимо передать в Zabbix
-func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRecipient <-chan Messager) error {
+func (zc *ZabbixConnection) Start(ctx context.Context, events []EventType, chRecipient <-chan interfaces.Messager) error {
 	if len(events) == 0 {
 		return errors.New("invalid configuration file for Zabbix, the number of event types (ZABBIX.zabbixHosts.eventTypes) is 0")
 	}
