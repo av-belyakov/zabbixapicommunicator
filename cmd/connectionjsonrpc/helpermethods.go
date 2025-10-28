@@ -1,60 +1,75 @@
 package connectionjsonrpc
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"strings"
+	"errors"
+	"time"
 )
 
-// GetMethodRequest запрос методом GET
-func (rs *RequiestSensorInfo) GetMethodRequest(ctx context.Context, params string) (string, error) {
-	request := fmt.Sprintf(`{
-      "jsonrpc":"2.0",
-	  "method":"item.get",
-	  "params":%s,
-	  "id":1
-	}`, params)
+//******************* настройка опций ***********************
 
-	return rs.SendRequest(ctx, request)
-}
-
-// sendRequest передача запроса к API
-func (sid *RequiestSensorInfo) SendRequest(ctx context.Context, str string) (string, error) {
-	res, err := sid.zabbixConnection.PostRequest(ctx, strings.NewReader(str))
-	if err != nil {
-		return "", err
-	}
-
-	var resData ResponseData
-	err = json.Unmarshal(res, &resData)
-	if err != nil {
-		return "", err
-	}
-
-	if len(resData.Error) > 0 {
-		var msg, data string
-
-		for k, v := range resData.Error {
-			if k == "message" {
-				msg = fmt.Sprint(v)
-			}
-
-			if k == "data" {
-				data = fmt.Sprint(v)
-			}
+// WithHost имя или ip адрес хоста API
+func WithHost(v string) zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		if v == "" {
+			return errors.New("the value of 'host' cannot be empty")
 		}
 
-		return "", fmt.Errorf("%s. %s", msg, data)
-	}
+		api.host = v
 
-	for _, v := range resData.Result {
-		for key, value := range v {
-			if key == "lastvalue" {
-				return fmt.Sprint(value), nil
-			}
-		}
+		return nil
 	}
-
-	return "", nil
 }
+
+// WithLogin имя пользователя
+func WithLogin(v string) zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		if v == "" {
+			return errors.New("the value of 'login' cannot be empty")
+		}
+
+		api.login = v
+
+		return nil
+	}
+}
+
+// WithPasswd пароль пользователя
+func WithPasswd(v string) zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		if v == "" {
+			return errors.New("the value of 'password' cannot be empty")
+		}
+
+		api.passwd = v
+
+		return nil
+	}
+}
+
+// WithConnectionTimeout временной интервал соединения в секундах
+func WithConnectionTimeout(v int) zabbixConnectionOptions {
+	return func(n *ZabbixConnectionJsonRPC) error {
+		if v <= 1 || v > 180 {
+			return errors.New("an incorrect value, the value should be in the range from 1 to 1800")
+		}
+
+		n.connectionTimeout = time.Duration(v) * time.Second
+
+		return nil
+	}
+}
+
+/*
+// WithPort сетевой порт API
+func WithPort(v int) zabbixConnectionOptions {
+	return func(n *ZabbixConnectionJsonRPC) error {
+		if v <= 0 || v > 65535 {
+			return errors.New("an incorrect network port value was received")
+		}
+
+		n.port = v
+
+		return nil
+	}
+}
+*/

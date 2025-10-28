@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-// Authorization запрос к Zabbix с целью получения хеша авторизации необходимого для
+// AuthorizationStart попытка получить хеш авторизации который необходим для
 // дальнейшей работы с API
-func (zc *ZabbixConnectionJsonRPC) Authorization(ctx context.Context) error {
+func (api *ZabbixConnectionJsonRPC) AuthorizationStart(ctx context.Context) error {
 	data := strings.NewReader(fmt.Sprintf(`{
 	  "jsonrpc":"2.0",
 	  "method":"user.login",
@@ -20,10 +20,10 @@ func (zc *ZabbixConnectionJsonRPC) Authorization(ctx context.Context) error {
 		"password":"%s"
 	  },
 	  "id":1
-	}`, zc.login, zc.passwd))
+	}`, api.login, api.passwd))
 
 	result := ZabbixAuthorizationData{}
-	res, err := zc.PostRequest(ctx, data)
+	res, err := api.postRequest(ctx, data)
 	if err != nil {
 		return err
 	}
@@ -46,27 +46,83 @@ func (zc *ZabbixConnectionJsonRPC) Authorization(ctx context.Context) error {
 		return fmt.Errorf("error authorization, (%s %s)", shortMsg, fullMsg)
 	}
 
-	zc.authorizationHash = result.Result
+	api.authorizationHash = result.Result
 
 	return nil
 }
 
 // GetAuthorizationData хеш авторизации
-func (zc *ZabbixConnectionJsonRPC) GetAuthorizationData() string {
-	return zc.authorizationHash
+func (api *ZabbixConnectionJsonRPC) GetAuthorizationData() string {
+	return api.authorizationHash
 }
 
-// PostRequest HTTP запрос типа POST
-func (zc *ZabbixConnectionJsonRPC) PostRequest(ctx context.Context, data *strings.Reader) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", zc.url, data)
+/*
+* Здесь надо подумать
+
+// Request запрос к API
+
+	func (api *RequiestSensorInfo) Request(ctx context.Context, params string) (string, error) {
+		request := fmt.Sprintf(`{
+	      "jsonrpc":"2.0",
+		  "method":"item.get",
+		  "params":%s,
+		  "id":1
+		}`, params)
+
+		return api.sendRequest(ctx, request)
+	}
+
+// sendRequest передача запроса к API
+
+	func (api *RequiestSensorInfo) sendRequest(ctx context.Context, str string) (string, error) {
+		res, err := api.zabbixConnection.postRequest(ctx, strings.NewReader(str))
+		if err != nil {
+			return "", err
+		}
+
+		var resData ResponseData
+		err = json.Unmarshal(res, &resData)
+		if err != nil {
+			return "", err
+		}
+
+		if len(resData.Error) > 0 {
+			var msg, data string
+
+			for k, v := range resData.Error {
+				if k == "message" {
+					msg = fmt.Sprint(v)
+				}
+
+				if k == "data" {
+					data = fmt.Sprint(v)
+				}
+			}
+
+			return "", fmt.Errorf("%s. %s", msg, data)
+		}
+
+		for _, v := range resData.Result {
+			for key, value := range v {
+				if key == "lastvalue" {
+					return fmt.Sprint(value), nil
+				}
+			}
+		}
+
+		return "", nil
+	}
+*/
+func (api *ZabbixConnectionJsonRPC) postRequest(ctx context.Context, data *strings.Reader) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", api.url, data)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", zc.authorizationHash))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", api.authorizationHash))
 	req.Header.Set("Content-Type", "application/json-rpc")
 
-	res, err := zc.connClient.Do(req)
+	res, err := api.connClient.Do(req)
 	if err != nil {
 		return []byte{}, err
 	}

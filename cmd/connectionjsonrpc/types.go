@@ -6,18 +6,36 @@ import (
 	"time"
 )
 
-// ZabbixAuthorizationData результат авторизации
-type ZabbixAuthorizationData struct {
-	Error   map[string]interface{} `json:"error"`
-	JsonRPC string                 `json:"jsonrpc"`
-	Result  string                 `json:"result"`
-	Id      int                    `json:"id"`
+// zabbixConnectionOptions опции соединения
+type zabbixConnectionOptions func(*ZabbixConnectionJsonRPC) error
+
+// ZabbixConnectionJsonRPC соединение по протоколу JsonRPC
+type ZabbixConnectionJsonRPC struct {
+	connClient        *http.Client
+	connectionTimeout time.Duration
+	url               string
+	host              string
+	login             string
+	passwd            string
+	applicationType   string
+	authorizationHash string
 }
 
+// ZabbixAuthorizationData результат авторизации
+type ZabbixAuthorizationData struct {
+	Error   map[string]any `json:"error"`
+	JsonRPC string         `json:"jsonrpc"`
+	Result  string         `json:"result"`
+	Id      int            `json:"id"`
+}
+
+// ZabbixAuthorizationErrorMessage сообщение об ошибке
 type ZabbixAuthorizationErrorMessage struct {
 	Data    string `json:"data"`
 	Message string `json:"message"`
 }
+
+// ----- всё что ниже пока не понятно нужно ли -----
 
 // SettingsZabbixConnection настройки Zabbix соединения
 type SettingsZabbixConnection struct {
@@ -46,16 +64,6 @@ type HandlerZabbixConnection struct {
 	zabbixHost  string
 	chanErr     chan error
 	port        int
-}
-
-type ZabbixConnectionJsonRPC struct {
-	connClient        *http.Client
-	url               string
-	host              string
-	login             string
-	passwd            string
-	applicationType   string
-	authorizationHash string
 }
 
 type ZabbixOptions struct {
@@ -96,16 +104,6 @@ type RequiestSensorInfo struct {
 }
 
 type ResponseData struct {
-	Result []map[string]interface{} `json:"result"`
-	Error  map[string]interface{}   `json:"error"`
-}
-
-type FullSensorInformationFromZabbixAPI struct {
-	SensorId   string //id  сенсора
-	HostId     string //id хоста
-	GeoCode    string //геокод
-	ObjectArea string //сфера деятельности
-	SubjectRF  string //субъект РФ
-	INN        string //ИНН
-	HomeNet    string //список домашних сетей
+	Result []map[string]any `json:"result"`
+	Error  map[string]any   `json:"error"`
 }
