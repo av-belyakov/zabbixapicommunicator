@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// NewZabbixConnectionJsonRPC создает объект соединения с Zabbix API
-func NewZabbixConnectionJsonRPC(settings SettingsZabbixConnectionJsonRPC) (*ZabbixConnectionJsonRPC, error) {
+// New создает объект соединения с Zabbix API
+func New(settings SettingsZabbixConnectionJsonRPC) (*ZabbixConnectionJsonRPC, error) {
 	var zc *ZabbixConnectionJsonRPC
 
 	connTimeout := 30 * time.Second

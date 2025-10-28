@@ -1,4 +1,4 @@
-package zabbixapicommunicator
+package connectionpackagedata
 
 import (
 	"time"
