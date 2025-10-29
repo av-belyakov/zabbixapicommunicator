@@ -1,4 +1,4 @@
-package connectionpackagedata
+package connectionzabbixagent
 
 import (
 	"fmt"
