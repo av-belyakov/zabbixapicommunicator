@@ -35,19 +35,6 @@ type ZabbixAuthorizationErrorMessage struct {
 	Message string `json:"message"`
 }
 
-// ResponseMessage ответное сообщение
-type ResponseMessage struct {
-	Result []map[string]any `json:"result"`
-	Error  ErrorMessage     `json:"error"`
-}
-
-// ErrorMessage описание ошибки
-type ErrorMessage struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    string `json:"data"`
-}
-
 // ----- всё что ниже пока не понятно нужно ли -----
 
 // SettingsZabbixConnection настройки Zabbix соединения
