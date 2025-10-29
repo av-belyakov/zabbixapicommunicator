@@ -2,63 +2,12 @@ package connectionjsonrpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 )
 
-// AuthorizationStart авторизация клиента
-// В результате авторизации должен быть получен хеш авторизации который будет
-// добавлятся в каждый последующий запрос.
-func (api *ZabbixConnectionJsonRPC) AuthorizationStart(ctx context.Context) error {
-	data := strings.NewReader(fmt.Sprintf(`{
-	  "jsonrpc":"2.0",
-	  "method":"user.login",
-	  "params": {
-	    "username":"%s",
-		"password":"%s"
-	  },
-	  "id":1
-	}`, api.login, api.passwd))
-
-	result := ZabbixAuthorizationData{}
-	res, err := api.postRequest(ctx, data)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(res, &result); err != nil {
-		return err
-	}
-
-	if len(result.Error) > 0 {
-		var shortMsg, fullMsg string
-		for k, v := range result.Error {
-			if k == "message" {
-				shortMsg = fmt.Sprint(v)
-			}
-			if k == "data" {
-				fullMsg = fmt.Sprint(v)
-			}
-		}
-
-		return fmt.Errorf("error authorization, (%s %s)", shortMsg, fullMsg)
-	}
-
-	api.authorizationHash = result.Result
-
-	return nil
-}
-
-// GetAuthorizationData хеш авторизации
-func (api *ZabbixConnectionJsonRPC) GetAuthorizationData() string {
-	return api.authorizationHash
-}
-
-// ActionGet извлечение данных.
+// ActionGet получение информации по действиям.
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/get.
@@ -129,52 +78,22 @@ func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...stri
 	return res, err
 }
 
-// sendRequest обрабатывает запрос
-func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.Reader) ([]byte, error) {
-	response, err := api.postRequest(ctx, r)
-	if err != nil {
-		// при возникновении ошибки пытаемся авторизоватся повторно,
-		// так как при устаревании авторизационного хеша возможно появления
-		// ошибки с сообщением:
-		// 'Invalid params. Session terminated, re-login, please.'
-		err = api.AuthorizationStart(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		response, err = api.postRequest(ctx, r)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return response, err
-}
-
-// postRequest выполняет POST запрос
-func (api *ZabbixConnectionJsonRPC) postRequest(ctx context.Context, data *strings.Reader) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", api.url, data)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", api.authorizationHash))
-	req.Header.Set("Content-Type", "application/json-rpc")
-
-	res, err := api.connClient.Do(req)
-	if err != nil {
-		return []byte{}, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return []byte{}, fmt.Errorf("error sending the request, response status is %s", res.Status)
-	}
-
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return resBody, nil
+func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context) ([]byte, error) {
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.get",
+	  			"params": {
+					"output": [
+            			"hostid",
+            			"host"
+        			],
+					"selectInterfaces": [
+            			"interfaceid",
+            			"ip"
+        			]
+				},
+	  			"id":2
+			}`))
 }
