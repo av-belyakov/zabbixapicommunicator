@@ -65,3 +65,10 @@ type HostInformation struct {
 	MaintenanceType   string `json:"maintenance_type"`
 	MaintenanceFrom   string `json:"maintenance_from"`
 }
+
+// ResponseCretaeHostGroupList ответное сообщение со списком созданных групп
+type ResponseCretaeHostGroupList struct {
+	Result []struct {
+		Groupids []string `json:"groupids"`
+	} `json:"result"`
+}

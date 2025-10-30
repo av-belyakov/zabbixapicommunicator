@@ -13,7 +13,7 @@ import (
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/get.
-func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string) ([]byte, error) {
+func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -30,7 +30,7 @@ func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string)
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/create
-func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param string) ([]byte, error) {
+func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -46,7 +46,7 @@ func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param stri
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/update.
-func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param string) ([]byte, error) {
+func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -62,12 +62,12 @@ func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param stri
 // Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/delete.
 // В сигнатуре функции перечень id является идентификатор ранее установленных тригеров
-func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...string) ([]byte, error) {
+func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...string) ([]byte, *ResponseMessage, error) {
 	if len(id) == 0 {
-		return nil, errors.New("deletion cannot be performed, the list of IDs must not be empty")
+		return nil, nil, errors.New("deletion cannot be performed, the list of IDs must not be empty")
 	}
 
-	res, err := api.sendRequest(
+	res, data, err := api.sendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -77,7 +77,7 @@ func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...stri
 	  			"id":1
 			}`, strings.Join(id, ","))))
 
-	return res, err
+	return res, data, err
 }
 
 // GetAPIInfo информация о версии API (запрос должен выполнятся БЕЗ авторизации)
@@ -118,21 +118,35 @@ func (api *ZabbixConnectionJsonRPC) GetAPIInfo(ctx context.Context) ([]byte, err
 // Параметр 'param' представляет собой JSON в стороковом виде содержащий различный
 // набор параметров подобных search, filter и т.д. Подробнее о формировании настраиваемого
 // запроса можно узнать из официальной документации https://www.zabbix.com/documentation/current/en/manual/api/reference
-func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method string, param string) ([]byte, error) {
+func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method string, param string) ([]byte, *ResponseMessage, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
 	  			"method":"%s",
 	  			"params": %s,
-	  			"id":2
+	  			"id":111
 			}`, method, param)))
 }
 
-// GetHostLis получить список хостов для определённых групп
-func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...string) ([]byte, error) {
+// GetFullHostList весь список хостов
+func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte, *ResponseMessage, error) {
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.get",
+	  			"params": {
+					"output": "extend"
+				},
+	  			"id":1
+			}`))
+}
+
+// GetHostLis список хостов для определённых групп
+func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...string) ([]byte, *ResponseMessage, error) {
 	if len(groupId) == 0 {
-		return nil, errors.New("value 'groupId' is not be empty")
+		return nil, nil, errors.New("value 'groupId' is not be empty")
 	}
 
 	return api.sendRequest(
@@ -148,22 +162,8 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 			}`, strings.Join(groupId, ","))))
 }
 
-// GetFullHostList весь список хостов
-func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte, error) {
-	return api.sendRequest(
-		ctx,
-		strings.NewReader(`{
-	  			"jsonrpc":"2.0",
-	  			"method":"host.get",
-	  			"params": {
-					"output": "extend"
-				},
-	  			"id":1
-			}`))
-}
-
-// GetHostLis получить список групп хостов
-func (api *ZabbixConnectionJsonRPC) GetHostGroupList(ctx context.Context) ([]byte, error) {
+// GetFullHostGroupList весь список групп хостов
+func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, *ResponseMessage, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(`{
@@ -174,4 +174,29 @@ func (api *ZabbixConnectionJsonRPC) GetHostGroupList(ctx context.Context) ([]byt
 				},
 	  			"id":1
 			}`))
+}
+
+// CreateHostGroup создание группы хостов
+func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string, flags int) ([]byte, *ResponseMessage, error) {
+	hgFlag := "0"
+	if flags == 4 {
+		hgFlag = "4"
+	}
+
+	res, data, err := api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"hostgroup.create",
+	  			"params": {
+					"name":"%s",
+					"flag":"%s" 
+				},
+	  			"id":1
+			}`, name, hgFlag)))
+	if err != nil {
+		return nil, data, err
+	}
+
+	return res, data, err
 }

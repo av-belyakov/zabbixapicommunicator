@@ -2,15 +2,26 @@ package connectionjsonrpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 )
 
+func responseDecode(data []byte) (*ResponseMessage, error) {
+	res := &ResponseMessage{}
+	err := json.Unmarshal(data, res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 // sendRequest обрабатывает запрос
-func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.Reader) ([]byte, error) {
-	response, err := api.postRequest(ctx, r)
+func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.Reader) ([]byte, *ResponseMessage, error) {
+	res, err := api.postRequest(ctx, r)
 	if err != nil {
 		// при возникновении ошибки пытаемся авторизоватся повторно,
 		// так как при устаревании авторизационного хеша возможно появления
@@ -18,16 +29,26 @@ func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.
 		// 'Invalid params. Session terminated, re-login, please.'
 		err = api.AuthorizationStart(ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		response, err = api.postRequest(ctx, r)
+		res, err = api.postRequest(ctx, r)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+
+		data, err := responseDecode(res)
+		if err != nil {
+			return res, data, err
 		}
 	}
 
-	return response, err
+	data, err := responseDecode(res)
+	if err != nil {
+		return res, data, err
+	}
+
+	return res, data, err
 }
 
 // postRequest выполняет POST запрос
