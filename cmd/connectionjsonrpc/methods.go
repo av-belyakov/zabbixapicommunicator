@@ -176,24 +176,88 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([
 			}`))
 }
 
-// CreateHostGroup создание группы хостов
-func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string, flags int) ([]byte, *ResponseMessage, error) {
-	hgFlag := "0"
-	if flags == 4 {
-		hgFlag = "4"
-	}
-
+// CreateHostGroup создание группы хостов (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string) ([]byte, *ResponseMessage, error) {
 	res, data, err := api.sendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
 	  			"method":"hostgroup.create",
 	  			"params": {
-					"name":"%s",
-					"flag":"%s" 
+					"name":"%s" 
 				},
 	  			"id":1
-			}`, name, hgFlag)))
+			}`, name)))
+	if err != nil {
+		return nil, data, err
+	}
+
+	return res, data, err
+}
+
+// CreateHost создание хоста (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, host string) ([]byte, *ResponseMessage, error) {
+	type HostInterfaces struct {
+		HostIP    string `json:"ip"`
+		HostDNS   string `json:"dns"`
+		HostPort  string `json:"port"`
+		HostType  int    `jsom:"type"`
+		HostMain  int    `json:"main"`
+		HostUseip int    `json:"useip"`
+	}
+
+	res, data, err := api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.create",
+	  			"params": {
+					"host": "Linux server",
+        			"interfaces": [
+            {
+                "type": 1,
+                "main": 1,
+                "useip": 1,
+                "ip": "192.168.3.1",
+                "dns": "",
+                "port": "10050"
+            }
+        ],
+        			"groups": [
+            {
+                "groupid": "50"
+            }
+        ],
+        			"tags": [
+            {
+                "tag": "host-name",
+                "value": "linux-server"
+            }
+        ],
+        		"templates": [
+            {
+                "templateid": "20045"
+            }
+        ],
+        		"macros": [
+            {
+                "macro": "{$USER_ID}",
+                "value": "123321"
+            },
+            {
+                "macro": "{$USER_LOCATION}",
+                "value": "0:0:0",
+                "description": "latitude, longitude and altitude coordinates"
+            }
+        ],
+        		"inventory_mode": 0,
+        		"inventory": {
+            "macaddress_a": "01234",
+            "macaddress_b": "56768"
+        }
+				},
+	  			"id":1
+			}`, name)))
 	if err != nil {
 		return nil, data, err
 	}
