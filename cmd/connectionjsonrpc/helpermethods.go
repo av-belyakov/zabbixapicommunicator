@@ -7,6 +7,27 @@ import (
 
 //******************* настройка опций пакета ***********************
 
+// WithTLS использовать TLS
+func WithTLS(v bool) zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		api.isTls = v
+
+		return nil
+	}
+}
+
+func WithFileRootCA(v ...string) zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		for _, cert := range v {
+			if cert != "" {
+				api.rootCAs = append(api.rootCAs, cert)
+			}
+		}
+
+		return nil
+	}
+}
+
 // WithHost имя или ip адрес хоста API
 func WithHost(v string) zabbixConnectionOptions {
 	return func(api *ZabbixConnectionJsonRPC) error {
@@ -15,6 +36,19 @@ func WithHost(v string) zabbixConnectionOptions {
 		}
 
 		api.host = v
+
+		return nil
+	}
+}
+
+// WithPort сетевой порт API
+func WithPort(v int) zabbixConnectionOptions {
+	return func(n *ZabbixConnectionJsonRPC) error {
+		if v <= 0 || v > 65535 {
+			return errors.New("an incorrect network port value was received")
+		}
+
+		n.port = v
 
 		return nil
 	}
@@ -58,18 +92,3 @@ func WithConnectionTimeout(v int) zabbixConnectionOptions {
 		return nil
 	}
 }
-
-/*
-// WithPort сетевой порт API
-func WithPort(v int) zabbixConnectionOptions {
-	return func(n *ZabbixConnectionJsonRPC) error {
-		if v <= 0 || v > 65535 {
-			return errors.New("an incorrect network port value was received")
-		}
-
-		n.port = v
-
-		return nil
-	}
-}
-*/

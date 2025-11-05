@@ -13,12 +13,15 @@ type zabbixConnectionOptions func(*ZabbixConnectionJsonRPC) error
 type ZabbixConnectionJsonRPC struct {
 	connClient        *http.Client
 	connectionTimeout time.Duration
+	rootCAs           []string
 	url               string
 	host              string
 	login             string
 	passwd            string
 	applicationType   string
 	authorizationHash string
+	port              int
+	isTls             bool
 }
 
 // ZabbixAuthorizationData результат авторизации

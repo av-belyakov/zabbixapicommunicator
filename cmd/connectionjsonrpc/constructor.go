@@ -20,16 +20,31 @@ func NewConnect(opts ...zabbixConnectionOptions) (*ZabbixConnectionJsonRPC, erro
 		}
 	}
 
-	api.url = fmt.Sprintf("https://%s/api_jsonrpc.php", api.host)
+	proto := "http"
+	tlsConf := &tls.Config{}
+	if api.isTls {
+		proto = "https"
+
+		certPool := x509.NewCertPool()
+		for _, cert := range api.rootCAs {
+			if cert != "" {
+				certPool.AppendCertsFromPEM([]byte(cert))
+			}
+		}
+
+		tlsConf = &tls.Config{
+			//InsecureSkipVerify: true, //пока пропускаем верификацию по сертификату
+			RootCAs: certPool,
+		}
+	}
+
+	api.url = fmt.Sprintf("%s://%s:%d/api_jsonrpc.php", proto, api.host, api.port)
 	api.connClient = &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        10,
 			IdleConnTimeout:     api.connectionTimeout,
 			MaxIdleConnsPerHost: 10,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //пока пропускаем верификацию по сертификату
-				RootCAs:            x509.NewCertPool(),
-			},
+			TLSClientConfig:     tlsConf,
 		},
 		Timeout: 15 * time.Second,
 	}
