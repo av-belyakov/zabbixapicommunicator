@@ -1,4 +1,4 @@
-package connectionjsonrpc
+package connectionjsonrpc_test
 
 import (
 	"encoding/json"
