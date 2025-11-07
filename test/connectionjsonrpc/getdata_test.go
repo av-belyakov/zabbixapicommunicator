@@ -89,7 +89,10 @@ func TestGetData(t *testing.T) {
 	})
 
 	t.Run("Тест 2. Получить список групп хостов", func(t *testing.T) {
-		res, data, err := zc.GetFullHostGroupList(t.Context())
+		res, err := zc.GetFullHostGroupList(t.Context())
+		assert.NoError(t, err)
+
+		data, err := connectionjsonrpc.ResponseDecode(res)
 		assert.NoError(t, err)
 
 		if data.Error.Message != "" {
@@ -125,7 +128,10 @@ func TestGetData(t *testing.T) {
 			listGroupsId = append(listGroupsId, v)
 		}
 
-		res, data, err := zc.GetHostList(t.Context(), listGroupsId...)
+		res, err := zc.GetHostList(t.Context(), listGroupsId...)
+		assert.NoError(t, err)
+
+		data, err := connectionjsonrpc.ResponseDecode(res)
 		assert.NoError(t, err)
 
 		if data.Error.Message != "" {

@@ -76,7 +76,10 @@ func TestCreateAnyThere(t *testing.T) {
 	})
 
 	t.Run("Тест 2. Добавить новую группу хостов", func(t *testing.T) {
-		res, data, err := zc.CreateHostGroup(t.Context(), newTestGroup)
+		res, err := zc.CreateHostGroup(t.Context(), newTestGroup)
+		assert.NoError(t, err)
+
+		data, err := connectionjsonrpc.ResponseDecode(res)
 		assert.NoError(t, err)
 
 		isExist := strings.ContainsAny(data.Error.Message, "already exists")
@@ -94,12 +97,15 @@ func TestCreateAnyThere(t *testing.T) {
 			assert.NotEmpty(t, newTestGroupId.Result)
 		}
 
-		_, hostGrops, err := zc.GetFullHostGroupList(t.Context())
+		res, err = zc.GetFullHostGroupList(t.Context())
+		assert.NoError(t, err)
+
+		data, err = connectionjsonrpc.ResponseDecode(res)
 		assert.NoError(t, err)
 
 		var groupIsExist bool
-		for _, result := range hostGrops.Result {
-			fmt.Printf("result.name = '%s', type: %T\n", result["name"], result["name"])
+		for _, result := range data.Result {
+			//fmt.Printf("result.name = '%s', type: %T\n", result["name"], result["name"])
 
 			if result["name"] == newTestGroup {
 				newTestGroupId = fmt.Sprint(result["groupid"])
@@ -111,7 +117,28 @@ func TestCreateAnyThere(t *testing.T) {
 	})
 
 	t.Run("Тест 3. Добавить новые хосты в группу хостов", func(t *testing.T) {
+		res, err := zc.CreateHost(t.Context(), connectionjsonrpc.CreateHostOptions{
+			Host: "My new test host",
+			Groups: []connectionjsonrpc.Group{
+				{
+					GroupId: newTestGroupId,
+				},
+			},
+			Interfaces: connectionjsonrpc.InterfacesOptions{
+				IP:    "45.63.22.31",
+				Port:  "7899",
+				DNS:   "anythere.domain.name.org",
+				Type:  1,
+				Main:  1,
+				Useip: 1,
+				Details: connectionjsonrpc.DetailsOptions{
+					Version: 1,
+				},
+			},
+		})
+		assert.NoError(t, err)
 
+		fmt.Println("Response:", string(res))
 	})
 
 	t.Cleanup(func() {
