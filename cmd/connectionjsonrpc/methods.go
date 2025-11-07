@@ -2,18 +2,21 @@ package connectionjsonrpc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // ActionGet получение информации по действиям.
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/get.
-func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -30,7 +33,7 @@ func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string)
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/create
-func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param string) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -46,7 +49,7 @@ func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param stri
 // Содержимое 'param' должно являтся строковым представление JSON формата с определёнными
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/update.
-func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param string) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(
@@ -62,12 +65,12 @@ func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param stri
 // Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/delete.
 // В сигнатуре функции перечень id является идентификатор ранее установленных тригеров
-func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...string) ([]byte, error) {
 	if len(id) == 0 {
-		return nil, nil, errors.New("deletion cannot be performed, the list of IDs must not be empty")
+		return nil, errors.New("deletion cannot be performed, the list of IDs must not be empty")
 	}
 
-	res, data, err := api.sendRequest(
+	return api.sendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -76,8 +79,6 @@ func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...stri
 	  			"params":[%s],
 	  			"id":1
 			}`, strings.Join(id, ","))))
-
-	return res, data, err
 }
 
 // GetAPIInfo информация о версии API (запрос должен выполнятся БЕЗ авторизации)
@@ -118,7 +119,7 @@ func (api *ZabbixConnectionJsonRPC) GetAPIInfo(ctx context.Context) ([]byte, err
 // Параметр 'param' представляет собой JSON в стороковом виде содержащий различный
 // набор параметров подобных search, filter и т.д. Подробнее о формировании настраиваемого
 // запроса можно узнать из официальной документации https://www.zabbix.com/documentation/current/en/manual/api/reference
-func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method string, param string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method string, param string) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
@@ -130,7 +131,7 @@ func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method st
 }
 
 // GetFullHostList весь список хостов
-func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(`{
@@ -144,9 +145,9 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte
 }
 
 // GetHostLis список хостов для определённых групп
-func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...string) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...string) ([]byte, error) {
 	if len(groupId) == 0 {
-		return nil, nil, errors.New("value 'groupId' is not be empty")
+		return nil, errors.New("value 'groupId' is not be empty")
 	}
 
 	return api.sendRequest(
@@ -163,7 +164,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 }
 
 // GetFullHostGroupList весь список групп хостов
-func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, *ResponseMessage, error) {
+func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
 		strings.NewReader(`{
@@ -177,8 +178,8 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([
 }
 
 // CreateHostGroup создание группы хостов (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string) ([]byte, *ResponseMessage, error) {
-	res, data, err := api.sendRequest(
+func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string) ([]byte, error) {
+	return api.sendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -188,79 +189,48 @@ func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name st
 				},
 	  			"id":1
 			}`, name)))
-	if err != nil {
-		return nil, data, err
-	}
-
-	return res, data, err
 }
 
 // CreateHost создание хоста (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, host string) ([]byte, *ResponseMessage, error) {
-	type HostInterfaces struct {
-		HostIP    string `json:"ip"`
-		HostDNS   string `json:"dns"`
-		HostPort  string `json:"port"`
-		HostType  int    `jsom:"type"`
-		HostMain  int    `json:"main"`
-		HostUseip int    `json:"useip"`
+// подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/host/create
+func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHostOptions) ([]byte, error) {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err := validate.Struct(&opt)
+	if err != nil {
+		return nil, err
 	}
 
-	res, data, err := api.sendRequest(
-		ctx,
-		strings.NewReader(fmt.Sprintf(`{
+	if opt.Tags == nil {
+		opt.Tags = make([]Tag, 0)
+	}
+
+	if opt.Groups == nil {
+		opt.Groups = make([]Group, 0)
+	}
+
+	if opt.Macros == nil {
+		opt.Macros = make([]Macro, 0)
+	}
+
+	if opt.Templates == nil {
+		opt.Templates = make([]Template, 0)
+	}
+
+	b, err := json.Marshal(&opt)
+	if err != nil {
+		return nil, err
+	}
+
+	request := fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
 	  			"method":"host.create",
-	  			"params": {
-					"host": "Linux server",
-        			"interfaces": [
-            {
-                "type": 1,
-                "main": 1,
-                "useip": 1,
-                "ip": "192.168.3.1",
-                "dns": "",
-                "port": "10050"
-            }
-        ],
-        			"groups": [
-            {
-                "groupid": "50"
-            }
-        ],
-        			"tags": [
-            {
-                "tag": "host-name",
-                "value": "linux-server"
-            }
-        ],
-        		"templates": [
-            {
-                "templateid": "20045"
-            }
-        ],
-        		"macros": [
-            {
-                "macro": "{$USER_ID}",
-                "value": "123321"
-            },
-            {
-                "macro": "{$USER_LOCATION}",
-                "value": "0:0:0",
-                "description": "latitude, longitude and altitude coordinates"
-            }
-        ],
-        		"inventory_mode": 0,
-        		"inventory": {
-            "macaddress_a": "01234",
-            "macaddress_b": "56768"
-        }
-				},
+	  			"params": %s,
 	  			"id":1
-			}`, name)))
-	if err != nil {
-		return nil, data, err
-	}
+			}`, string(b))
 
-	return res, data, err
+	fmt.Println("func 'CreateHost', CREATED REQUEST:", request)
+
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(request))
 }

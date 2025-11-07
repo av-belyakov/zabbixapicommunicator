@@ -1,7 +1,6 @@
 package connectionjsonrpc
 
 import (
-	"context"
 	"net/http"
 	"time"
 )
@@ -40,6 +39,7 @@ type ZabbixAuthorizationErrorMessage struct {
 
 // ----- всё что ниже пока не понятно нужно ли -----
 
+/*
 // SettingsZabbixConnection настройки Zabbix соединения
 type SettingsZabbixConnection struct {
 	Host              string         //ip адрес или доменное имя
@@ -105,3 +105,4 @@ type RequiestSensorInfo struct {
 	zabbixConnection *ZabbixConnectionJsonRPC
 	specialId        string
 }
+*/
