@@ -1,4 +1,4 @@
-package connectionjsonrpc
+package connectionjsonrpc_test
 
 import (
 	"encoding/json"
@@ -12,17 +12,8 @@ import (
 	"github.com/subosito/gotenv"
 
 	"github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
+	cjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
 )
-
-type Information struct {
-	Hosts []HostInfo `json:"hosts"`
-}
-
-type HostInfo struct {
-	HostId string `json:"host_id"`
-	Host   string `json:"host"`
-	Name   string `json:"name"`
-}
 
 func TestGetData(t *testing.T) {
 	var (
@@ -31,8 +22,8 @@ func TestGetData(t *testing.T) {
 
 		err error
 
-		information Information       = Information{}
-		nameGroups  map[string]string = map[string]string{
+		information cjsonrpc.Information = cjsonrpc.Information{}
+		nameGroups  map[string]string    = map[string]string{
 			"Сайты ГЦМ/ 3.1 Критические":              "",
 			"Сайты ГЦМ/ 3.2 ОГВ Российской Федерации": "",
 			"Сайты ГЦМ/ 3.3 ОГВ ЦФО":                  "",
@@ -43,7 +34,7 @@ func TestGetData(t *testing.T) {
 		}
 	)
 
-	if err := gotenv.Load(".env"); err != nil {
+	if err := gotenv.Load(".prod-env"); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -62,7 +53,7 @@ func TestGetData(t *testing.T) {
 		log.Fatalln("environment variable 'GO_TESTZABBIX_PASSWD' cannot be empty")
 	}
 
-	f, err = os.Create("./hosts.json")
+	f, err = os.Create("./prod-hosts.json")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -148,7 +139,7 @@ func TestGetData(t *testing.T) {
 
 		//список хостов
 		for _, v := range hostList.Result {
-			information.Hosts = append(information.Hosts, HostInfo{
+			information.Hosts = append(information.Hosts, cjsonrpc.HostInfo{
 				HostId: v.HostId,
 				Host:   v.Host,
 				Name:   v.Name,

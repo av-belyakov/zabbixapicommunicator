@@ -1,2 +1,4 @@
 .env
+.prod-env
 hosts.json
+prod-hosts.json
