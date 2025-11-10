@@ -222,16 +222,12 @@ func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHo
 		return nil, err
 	}
 
-	request := fmt.Sprintf(`{
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
 	  			"method":"host.create",
 	  			"params": %s,
 	  			"id":1
-			}`, string(b))
-
-	fmt.Println("func 'CreateHost', CREATED REQUEST:", request)
-
-	return api.sendRequest(
-		ctx,
-		strings.NewReader(request))
+			}`, string(b))))
 }

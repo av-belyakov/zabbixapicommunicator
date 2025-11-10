@@ -1,10 +1,10 @@
 package connectionjsonrpc_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -12,17 +12,55 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/subosito/gotenv"
 
-	"github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
+	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
 )
 
 func TestCreateAnyThere(t *testing.T) {
 	var (
-		zc *connectionjsonrpc.ZabbixConnectionJsonRPC
+		zc *connjsonrpc.ZabbixConnectionJsonRPC
 
 		err error
 
-		newTestGroup   string = "ГЦМ/ ТЕСТОВАЯ ГРУППА/DEV"
-		newTestGroupId string
+		newTestGroups []string = []string{
+			"ГЦМ/ ТЕСТОВАЯ ГРУППА ГЦМ/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Ставрополь/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Симферополь/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Москва/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Нижний-Новгород/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Смоленск/DEV",
+			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Хабаровск/DEV",
+		}
+		newTestGroupsId map[string]string = map[string]string{}
+		newTestHosts    map[string]struct {
+			Name string
+			Ip   string
+			DNS  string
+			Port int
+		} = map[string]struct {
+			Name string
+			Ip   string
+			DNS  string
+			Port int
+		}{
+			"test host one": {
+				Name: "host one",
+				Ip:   "30.122.36.76",
+				DNS:  "example-one.domainname.org",
+				Port: 3475,
+			},
+			"test host two": {
+				Name: "host two",
+				Ip:   "12.47.66.113",
+				DNS:  "example-two.domainname.org",
+				Port: 7633,
+			},
+			"test host three": {
+				Name: "host three",
+				Ip:   "91.100.32.66",
+				DNS:  "example-three.domainname.org",
+				Port: 9663,
+			},
+		}
 	)
 
 	if err := gotenv.Load(".env"); err != nil {
@@ -55,12 +93,12 @@ func TestCreateAnyThere(t *testing.T) {
 	}
 
 	t.Run("Тест 0. Инициализация соединения и получение авторизационного токена", func(t *testing.T) {
-		zc, err = connectionjsonrpc.NewConnect(
-			connectionjsonrpc.WithPort(port),
-			connectionjsonrpc.WithHost(zHost),
-			connectionjsonrpc.WithConnectionTimeout(30),
-			connectionjsonrpc.WithLogin(zUser),
-			connectionjsonrpc.WithPasswd(zPasswd),
+		zc, err = connjsonrpc.NewConnect(
+			connjsonrpc.WithPort(port),
+			connjsonrpc.WithHost(zHost),
+			connjsonrpc.WithConnectionTimeout(30),
+			connjsonrpc.WithLogin(zUser),
+			connjsonrpc.WithPasswd(zPasswd),
 		)
 		assert.NoError(t, err)
 
@@ -76,69 +114,92 @@ func TestCreateAnyThere(t *testing.T) {
 	})
 
 	t.Run("Тест 2. Добавить новую группу хостов", func(t *testing.T) {
-		res, err := zc.CreateHostGroup(t.Context(), newTestGroup)
-		assert.NoError(t, err)
-
-		data, err := connectionjsonrpc.ResponseDecode(res)
-		assert.NoError(t, err)
-
-		isExist := strings.ContainsAny(data.Error.Message, "already exists")
-
-		if data.Error.Message != "" && !isExist {
-			//fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", data.Error.Code, data.Error.Message, data.Error.Data)
-
-			assert.Fail(t, "request execution error", data.Error.Message, data.Error.Data)
-		}
-
-		if !isExist {
-			newTestGroupId := &connectionjsonrpc.ResponseCretaeHostGroupList{}
-			err = json.Unmarshal(res, newTestGroupId)
+		for _, newTestGroup := range newTestGroups {
+			res, err := zc.CreateHostGroup(t.Context(), newTestGroup)
 			assert.NoError(t, err)
-			assert.NotEmpty(t, newTestGroupId.Result)
-		}
 
-		res, err = zc.GetFullHostGroupList(t.Context())
-		assert.NoError(t, err)
+			fmt.Printf("Add group hosts, response:'%s'\n", string(res))
 
-		data, err = connectionjsonrpc.ResponseDecode(res)
-		assert.NoError(t, err)
+			rchg := connjsonrpc.NewResponseCreateHostGroup()
+			_, errMsg, err := rchg.Get(res)
+			assert.NoError(t, err)
 
-		var groupIsExist bool
-		for _, result := range data.Result {
-			//fmt.Printf("result.name = '%s', type: %T\n", result["name"], result["name"])
+			isExist := strings.ContainsAny(errMsg.Error.Message, "already exists")
 
-			if result["name"] == newTestGroup {
-				newTestGroupId = fmt.Sprint(result["groupid"])
-				groupIsExist = true
+			if errMsg.Error.Message != "" && !isExist {
+				//fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", data.Error.Code, data.Error.Message, data.Error.Data)
+
+				assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
 			}
 		}
-		assert.True(t, groupIsExist)
-		assert.NotNil(t, newTestGroupId)
+
+		//получить список групп хостов
+		res, err := zc.GetFullHostGroupList(t.Context())
+		assert.NoError(t, err)
+
+		rchg := connjsonrpc.NewResponseGetHostGroupList()
+		data, errMsg, err := rchg.Get(res)
+		assert.NoError(t, err)
+
+		if errMsg.Error.Message != "" {
+			fmt.Printf(
+				"Request error, code:%d, message:'%s', data:'%s'\n",
+				errMsg.Error.Code,
+				errMsg.Error.Message,
+				errMsg.Error.Data,
+			)
+		}
+
+		for _, result := range data.Result {
+			//fmt.Printf("result.name = '%s', type: %T\n", result["name"], result["name"])
+			//nameGroup := fmt.Sprint(groupId["name"])
+
+			if slices.Contains(newTestGroups, result.Name) {
+				newTestGroupsId[result.GroupId] = result.Name
+			}
+		}
+		assert.Greater(t, len(newTestGroupsId), 0)
+		assert.Equal(t, len(newTestGroupsId), len(newTestGroups))
 	})
 
 	t.Run("Тест 3. Добавить новые хосты в группу хостов", func(t *testing.T) {
-		res, err := zc.CreateHost(t.Context(), connectionjsonrpc.CreateHostOptions{
-			Host: "My new test host",
-			Groups: []connectionjsonrpc.Group{
-				{
-					GroupId: newTestGroupId,
-				},
-			},
-			Interfaces: connectionjsonrpc.InterfacesOptions{
-				IP:    "45.63.22.31",
-				Port:  "7899",
-				DNS:   "anythere.domain.name.org",
-				Type:  1,
-				Main:  1,
-				Useip: 1,
-				Details: connectionjsonrpc.DetailsOptions{
-					Version: 1,
-				},
-			},
-		})
-		assert.NoError(t, err)
+		var isError bool
 
-		fmt.Println("Response:", string(res))
+		fmt.Println("newTestGroupsId:", newTestGroupsId)
+
+		var groups []connjsonrpc.Group
+		for groupId := range newTestGroupsId {
+			fmt.Println("___ groupId:", groupId)
+
+			groups = append(groups, connjsonrpc.Group{GroupId: groupId})
+		}
+
+		for k, v := range newTestHosts {
+			res, err := zc.CreateHost(t.Context(), connjsonrpc.CreateHostOptionsRequest{
+				Host:   k,
+				Groups: groups,
+				Interfaces: connjsonrpc.InterfacesOptions{
+					IP:    v.Ip,
+					Port:  fmt.Sprint(v.Port),
+					DNS:   v.DNS,
+					Type:  1,
+					Main:  1,
+					Useip: 1,
+					Details: connjsonrpc.DetailsOptions{
+						Version: 1,
+					},
+				},
+			})
+			assert.NoError(t, err)
+			if err != nil {
+				isError = true
+
+				break
+			}
+
+			fmt.Println("Response:", string(res))
+		}
+		assert.False(t, isError)
 	})
 
 	t.Cleanup(func() {
