@@ -1,21 +1,39 @@
 package connectionjsonrpc
 
-// ResponseMessage ответное сообщение
-type ResponseMessage struct {
-	Result []map[string]any `json:"result"`
-	Error  ErrorMessage     `json:"error"`
+// ResponseError ошибка
+type ResponseError struct {
+	Error struct {
+		Message string `json:"message"`
+		Data    string `json:"data"`
+		Code    int    `json:"code"`
+	} `json:"error"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
 }
 
-// ErrorMessage описание ошибки
-type ErrorMessage struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    string `json:"data"`
+// ResponseCreateHostGroup ответ на запрос создания группы хостов
+type ResponseCreateHostGroup struct {
+	Result struct {
+		GroupIds []string `json:"groupids"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}
+
+// ResponseCreateHost ответ на запрос создания хоста
+type ResponseCreateHost struct {
+	Result struct {
+		HostIds []string `json:"hostids"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
 }
 
 // ResponseHostGroupList ответное сообщение со списком групп
 type ResponseHostGroupList struct {
-	Result []HostGroupInformation `json:"result"`
+	Result  []HostGroupInformation `json:"result"`
+	JsonRPC string                 `json:"jsonrpc"`
+	ID      int                    `json:"id"`
 }
 
 // HostGroupInformation описание информации по группам
@@ -67,8 +85,8 @@ type HostInformation struct {
 }
 
 // ResponseCretaeHostGroupList ответное сообщение со списком созданных групп
-type ResponseCretaeHostGroupList struct {
+/*type ResponseCretaeHostGroupList struct {
 	Result []struct {
 		Groupids []string `json:"groupids"`
 	} `json:"result"`
-}
+}*/

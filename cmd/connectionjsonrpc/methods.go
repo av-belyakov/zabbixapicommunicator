@@ -178,6 +178,7 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([
 }
 
 // CreateHostGroup создание группы хостов (обязательны права супер-администратора)
+// Подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/hostgroup/create
 func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string) ([]byte, error) {
 	return api.sendRequest(
 		ctx,
@@ -192,8 +193,8 @@ func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name st
 }
 
 // CreateHost создание хоста (обязательны права супер-администратора)
-// подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/host/create
-func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHostOptions) ([]byte, error) {
+// Подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/host/create
+func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHostOptionsRequest) ([]byte, error) {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	err := validate.Struct(&opt)
 	if err != nil {

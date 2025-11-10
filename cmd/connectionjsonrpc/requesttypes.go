@@ -1,7 +1,7 @@
 package connectionjsonrpc
 
-// CreateHostOptions опции создания хоста
-type CreateHostOptions struct {
+// CreateHostOptionsRequest опции создания хоста
+type CreateHostOptionsRequest struct {
 	Tags      []Tag      `json:"tags"`
 	Groups    []Group    `validate:"required" json:"groups"`
 	Macros    []Macro    `json:"macros"`
@@ -64,8 +64,4 @@ type Macro struct {
 	Macro       string `json:"macro"`
 	Value       string `json:"value"`
 	Description string `json:"description"`
-}
-
-// CreateHostResponse ответ на запрос создания хоста
-type CreateHostResponse struct {
 }

@@ -11,19 +11,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/subosito/gotenv"
 
-	"github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
-	cjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
+	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
+	connjsonrpctest "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
 )
 
 func TestGetData(t *testing.T) {
 	var (
 		f  *os.File
-		zc *connectionjsonrpc.ZabbixConnectionJsonRPC
+		zc *connjsonrpc.ZabbixConnectionJsonRPC
 
 		err error
 
-		information cjsonrpc.Information = cjsonrpc.Information{}
-		nameGroups  map[string]string    = map[string]string{
+		information connjsonrpctest.Information = connjsonrpctest.Information{}
+		nameGroups  map[string]string           = map[string]string{
 			"Сайты ГЦМ/ 3.1 Критические":              "",
 			"Сайты ГЦМ/ 3.2 ОГВ Российской Федерации": "",
 			"Сайты ГЦМ/ 3.3 ОГВ ЦФО":                  "",
@@ -59,11 +59,11 @@ func TestGetData(t *testing.T) {
 	}
 
 	t.Run("Тест 0. Инициализация соединения и получение авторизационного токена", func(t *testing.T) {
-		zc, err = connectionjsonrpc.NewConnect(
-			connectionjsonrpc.WithHost(zHost),
-			connectionjsonrpc.WithConnectionTimeout(30),
-			connectionjsonrpc.WithLogin(zUser),
-			connectionjsonrpc.WithPasswd(zPasswd),
+		zc, err = connjsonrpc.NewConnect(
+			connjsonrpc.WithHost(zHost),
+			connjsonrpc.WithConnectionTimeout(30),
+			connjsonrpc.WithLogin(zUser),
+			connjsonrpc.WithPasswd(zPasswd),
 		)
 		assert.NoError(t, err)
 
@@ -83,23 +83,20 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		data, err := connectionjsonrpc.ResponseDecode(res)
+		rhl := connjsonrpc.NewResponseGetHostGroupList()
+		data, errMsg, err := rhl.Get(res)
 		assert.NoError(t, err)
 
-		if data.Error.Message != "" {
-			fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", data.Error.Code, data.Error.Message, data.Error.Data)
+		if errMsg.Error.Message != "" {
+			fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", errMsg.Error.Code, errMsg.Error.Message, errMsg.Error.Data)
 
-			assert.Fail(t, "request execution error", data.Error.Message, data.Error.Data)
+			assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
 		}
-
-		hostGroupList := &connectionjsonrpc.ResponseHostGroupList{}
-		err = json.Unmarshal(res, hostGroupList)
-		assert.NoError(t, err)
-		assert.Greater(t, len(hostGroupList.Result), 0)
+		assert.Greater(t, len(data.Result), 0)
 
 		var num int = 1
 		//список групп
-		for _, v := range hostGroupList.Result {
+		for _, v := range data.Result {
 			if _, ok := nameGroups[v.Name]; !ok {
 				continue
 			}
@@ -108,9 +105,7 @@ func TestGetData(t *testing.T) {
 			fmt.Printf("%d.\n\tGroupId:'%s'\n\tUUID:'%s'\n\tName:'%s'\n", num, v.GroupId, v.UUID, v.Name)
 			num++
 		}
-
 		assert.Greater(t, len(data.Result), 0)
-
 	})
 
 	t.Run("Тест 3. Получить список всех хостов для определённой группы", func(t *testing.T) {
@@ -122,28 +117,32 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
-		data, err := connectionjsonrpc.ResponseDecode(res)
+		rghl := connjsonrpc.NewResponseGetHostList()
+		data, errMsg, err := rghl.Get(res)
 		assert.NoError(t, err)
 
-		if data.Error.Message != "" {
-			fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", data.Error.Code, data.Error.Message, data.Error.Data)
+		if errMsg.Error.Message != "" {
+			fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", errMsg.Error.Code, errMsg.Error.Message, errMsg.Error.Data)
 
-			assert.Fail(t, "request execution error", data.Error.Message, data.Error.Data)
+			assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
 		}
 
 		//fmt.Println("List host:", string(data))
-		hostList := &connectionjsonrpc.ResponseHostList{}
-		err = json.Unmarshal(res, hostList)
-		assert.NoError(t, err)
-		assert.Greater(t, len(hostList.Result), 0)
+		assert.Greater(t, len(data.Result), 0)
 
+		fmt.Println("список всех хостов:", data)
+
+		var num int = 1
 		//список хостов
-		for _, v := range hostList.Result {
-			information.Hosts = append(information.Hosts, cjsonrpc.HostInfo{
+		for _, v := range data.Result {
+			information.Hosts = append(information.Hosts, connjsonrpctest.HostInfo{
 				HostId: v.HostId,
 				Host:   v.Host,
 				Name:   v.Name,
 			})
+
+			fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
+			num++
 		}
 
 		b, err := json.Marshal(information)
