@@ -10,13 +10,18 @@ type CreateHostOptionsRequest struct {
 		MacaddressA string `json:"macaddress_a"`
 		MacaddressB string `json:"macaddress_b"`
 	} `json:"inventory"`
-	Interfaces    InterfacesOptions `json:"interfaces"`
-	Host          string            `validate:"required" json:"host"`
-	InventoryMode int               `json:"inventory_mode"`
+	Interfaces    InterfaceOptions `json:"interfaces"`
+	Host          string           `validate:"required" json:"host"`
+	InventoryMode int              `json:"inventory_mode"`
 }
 
-// InterfacesOptions опции интерфейса хоста
-type InterfacesOptions struct {
+// Interfaces интерфейсы
+type Interfaces struct {
+	Interface []InterfaceOptions `json:"interface"`
+}
+
+// InterfaceOptions опции интерфейса хоста
+type InterfaceOptions struct {
 	Details DetailsOptions `json:"details"`
 	IP      string         `validate:"ip" json:"ip"`
 	DNS     string         `json:"dns"`
@@ -42,13 +47,23 @@ type DetailsOptions struct {
 	MaxRepetitions int    `json:"max_repetitions"`
 }
 
-// Group опции групп
+// Groups группы
+type Groups struct {
+	Group []Group `json:"group"`
+}
+
+// Group опции группы
 type Group struct {
 	GroupId string `json:"groupid"`
 	Name    string `json:"name,omitempty"`
 }
 
-// Tag опции тегов
+// Tags теги
+type Tags struct {
+	Tag []Tag `json:"tag"`
+}
+
+// Tag опции тега
 type Tag struct {
 	Tag   string `json:"tag"`
 	Value string `json:"value"`
@@ -59,8 +74,14 @@ type Template struct {
 	TemplateId string `json:"templateid"`
 }
 
-// Macro опции макросов
+// Macros макросы
+type Macros struct {
+	Macro []Macro `json:"macro"`
+}
+
+// Macro опции макроса
 type Macro struct {
+	Type        string `validate:"oneof=0 1 2" json:"type"`
 	Macro       string `json:"macro"`
 	Value       string `json:"value"`
 	Description string `json:"description"`

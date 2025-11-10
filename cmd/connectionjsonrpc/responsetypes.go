@@ -84,9 +84,16 @@ type HostInformation struct {
 	MaintenanceFrom   string `json:"maintenance_from"`
 }
 
-// ResponseCretaeHostGroupList ответное сообщение со списком созданных групп
-/*type ResponseCretaeHostGroupList struct {
-	Result []struct {
-		Groupids []string `json:"groupids"`
+// ResponseUpdateHostGroup ответное сообщение на запрос обновления группы хостов
+type ResponseUpdateHostGroup struct {
+	Groupids []string `json:"groupids"`
+}
+
+// ResponseUpdateHost ответное сообщение на запрос обновления хоста
+type ResponseUpdateHost struct {
+	Result struct {
+		HostIds []string `json:"hostids"`
 	} `json:"result"`
-}*/
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}

@@ -69,3 +69,47 @@ func (r *ResponseHostList) Get(b []byte) (*ResponseHostList, *ResponseError, err
 
 	return res, resErr, nil
 }
+
+// NewResponseUpdateHostGroup ответ на обновление группы хостов
+func NewResponseUpdateHostGroup() *ResponseUpdateHostGroup {
+	return &ResponseUpdateHostGroup{}
+}
+
+// ResponseHostList получение списка группы хостов
+func (r *ResponseUpdateHostGroup) Get(b []byte) (*ResponseUpdateHostGroup, *ResponseError, error) {
+	res := &ResponseUpdateHostGroup{}
+	resErr := &ResponseError{}
+
+	err := json.Unmarshal(b, res)
+	if err != nil {
+		if err = json.Unmarshal(b, resErr); err != nil {
+			return res, resErr, err
+		}
+
+		return res, resErr, nil
+	}
+
+	return res, resErr, nil
+}
+
+// NewResponseUpdateHost ответ на обновление хоста
+func NewResponseUpdateHost() *ResponseUpdateHost {
+	return &ResponseUpdateHost{}
+}
+
+// ResponseHostList получение списка хостов
+func (r *ResponseUpdateHost) Get(b []byte) (*ResponseUpdateHost, *ResponseError, error) {
+	res := &ResponseUpdateHost{}
+	resErr := &ResponseError{}
+
+	err := json.Unmarshal(b, res)
+	if err != nil {
+		if err = json.Unmarshal(b, resErr); err != nil {
+			return res, resErr, err
+		}
+
+		return res, resErr, nil
+	}
+
+	return res, resErr, nil
+}

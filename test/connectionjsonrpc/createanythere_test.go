@@ -177,7 +177,7 @@ func TestCreateAnyThere(t *testing.T) {
 			res, err := zc.CreateHost(t.Context(), connjsonrpc.CreateHostOptionsRequest{
 				Host:   k,
 				Groups: groups,
-				Interfaces: connjsonrpc.InterfacesOptions{
+				Interfaces: connjsonrpc.InterfaceOptions{
 					IP:    v.Ip,
 					Port:  fmt.Sprint(v.Port),
 					DNS:   v.DNS,
