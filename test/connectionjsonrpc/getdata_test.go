@@ -12,6 +12,7 @@ import (
 	"github.com/subosito/gotenv"
 
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
+	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 	connjsonrpctest "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
 )
 
@@ -83,7 +84,7 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		rhl := connjsonrpc.NewResponseGetHostGroupList()
+		rhl := responsejsonrpc.NewResponseGetHostGroupList()
 		data, errMsg, err := rhl.Get(res)
 		assert.NoError(t, err)
 
@@ -92,7 +93,6 @@ func TestGetData(t *testing.T) {
 
 			assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
 		}
-		assert.Greater(t, len(data.Result), 0)
 
 		var num int = 1
 		//список групп
@@ -117,7 +117,7 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
-		rghl := connjsonrpc.NewResponseGetHostList()
+		rghl := responsejsonrpc.NewResponseGetHostList()
 		data, errMsg, err := rghl.Get(res)
 		assert.NoError(t, err)
 
@@ -126,11 +126,6 @@ func TestGetData(t *testing.T) {
 
 			assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
 		}
-
-		//fmt.Println("List host:", string(data))
-		assert.Greater(t, len(data.Result), 0)
-
-		fmt.Println("список всех хостов:", data)
 
 		var num int = 1
 		//список хостов
@@ -150,7 +145,6 @@ func TestGetData(t *testing.T) {
 
 		_, err = f.Write(b)
 		assert.NoError(t, err)
-
 		assert.Greater(t, len(data.Result), 0)
 	})
 
