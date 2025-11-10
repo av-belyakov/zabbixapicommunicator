@@ -1,4 +1,4 @@
-package responsejsonrpc
+package connectionjsonrpc
 
 // ResponseError ошибка
 type ResponseError struct {
