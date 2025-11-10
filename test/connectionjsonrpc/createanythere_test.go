@@ -13,6 +13,7 @@ import (
 	"github.com/subosito/gotenv"
 
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
+	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 )
 
 func TestCreateAnyThere(t *testing.T) {
@@ -118,9 +119,9 @@ func TestCreateAnyThere(t *testing.T) {
 			res, err := zc.CreateHostGroup(t.Context(), newTestGroup)
 			assert.NoError(t, err)
 
-			fmt.Printf("Add group hosts, response:'%s'\n", string(res))
+			//fmt.Printf("Add group hosts, response:'%s'\n", string(res))
 
-			rchg := connjsonrpc.NewResponseCreateHostGroup()
+			rchg := responsejsonrpc.NewResponseCreateHostGroup()
 			_, errMsg, err := rchg.Get(res)
 			assert.NoError(t, err)
 
@@ -137,7 +138,7 @@ func TestCreateAnyThere(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		rchg := connjsonrpc.NewResponseGetHostGroupList()
+		rchg := responsejsonrpc.NewResponseGetHostGroupList()
 		data, errMsg, err := rchg.Get(res)
 		assert.NoError(t, err)
 
@@ -165,11 +166,9 @@ func TestCreateAnyThere(t *testing.T) {
 	t.Run("Тест 3. Добавить новые хосты в группу хостов", func(t *testing.T) {
 		var isError bool
 
-		fmt.Println("newTestGroupsId:", newTestGroupsId)
-
 		var groups []connjsonrpc.Group
 		for groupId := range newTestGroupsId {
-			fmt.Println("___ groupId:", groupId)
+			//fmt.Println("___ groupId:", groupId)
 
 			groups = append(groups, connjsonrpc.Group{GroupId: groupId})
 		}
@@ -197,7 +196,19 @@ func TestCreateAnyThere(t *testing.T) {
 				break
 			}
 
-			fmt.Println("Response:", string(res))
+			//fmt.Println("Response:", string(res))
+			rch := responsejsonrpc.NewResponseCreateHost()
+			_, errMsg, err := rch.Get(res)
+			assert.NoError(t, err)
+
+			if errMsg.Error.Message != "" {
+				fmt.Printf(
+					"Request error, code:%d, message:'%s', data:'%s'\n",
+					errMsg.Error.Code,
+					errMsg.Error.Message,
+					errMsg.Error.Data,
+				)
+			}
 		}
 		assert.False(t, isError)
 	})
