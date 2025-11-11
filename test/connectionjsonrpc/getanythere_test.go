@@ -87,8 +87,7 @@ func TestGetAnyThereData(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		rchg := responsejsonrpc.NewResponseGetHostGroupList()
-		data, errMsg, err := rchg.Get(res)
+		data, errMsg, err := responsejsonrpc.NewResponseGetHostGroupList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -120,8 +119,7 @@ func TestGetAnyThereData(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
-		rhl := responsejsonrpc.NewResponseGetHostList()
-		data, errMsg, err := rhl.Get(res)
+		data, errMsg, err := responsejsonrpc.NewResponseGetHostList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {

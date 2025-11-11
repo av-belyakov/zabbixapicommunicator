@@ -126,7 +126,7 @@ func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method st
 	  			"jsonrpc":"2.0",
 	  			"method":"%s",
 	  			"params": %s,
-	  			"id":111
+	  			"id":100
 			}`, method, param)))
 }
 
@@ -175,6 +175,24 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([
 				},
 	  			"id":1
 			}`))
+}
+
+// GetHostGroup получение группы хостов по фильтру
+func (api *ZabbixConnectionJsonRPC) GetHostGroup(ctx context.Context, filter FilterHostGroup) ([]byte, error) {
+	b, err := json.Marshal(&filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.sendRequest(ctx, strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"hostgroup.get",
+	  			"params": {
+					"output":"extend",
+					"filter": %s
+				},
+	  			"id":1
+			}`, string(b))))
 }
 
 // CreateHostGroup создание группы хостов (обязательны права супер-администратора)
@@ -247,8 +265,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostGroup(ctx context.Context, groupId
 			}`, groupId, name)))
 }
 
-// UpdateHostGroupParameter обновление в хосте параметра 'группы хостов' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostGroupParameter(ctx context.Context, hostId string, opt Groups) ([]byte, error) {
+// UpdateHostParameterGroup обновление в хосте параметра 'группы хостов' (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroup(ctx context.Context, hostId string, opt Groups) ([]byte, error) {
 	b, err := json.Marshal(&opt.Group)
 	if err != nil {
 		return nil, err
@@ -267,8 +285,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostGroupParameter(ctx context.Context
 			}`, hostId, string(b))))
 }
 
-// UpdateHostTagsParameter обновление в хосте параметра 'теги' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostTagsParameter(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
+// UpdateHostParameterTags обновление в хосте параметра 'теги' (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
 	b, err := json.Marshal(&opt.Tag)
 	if err != nil {
 		return nil, err
@@ -287,8 +305,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostTagsParameter(ctx context.Context,
 			}`, hostId, string(b))))
 }
 
-// UpdateHostMacrosParameter обновление в хосте параметра 'макросы' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostMacrosParameter(ctx context.Context, hostId string, opt Macros) ([]byte, error) {
+// UpdateHostParameterMacro обновление в хосте параметра 'макросы' (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterMacro(ctx context.Context, hostId string, opt Macros) ([]byte, error) {
 	for k, macro := range opt.Macro {
 		if macro.Type == "" {
 			opt.Macro[k].Type = "0"
@@ -313,8 +331,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostMacrosParameter(ctx context.Contex
 			}`, hostId, string(b))))
 }
 
-// UpdateHostInterfacesParameter обновление в хосте параметра 'интерфейсы' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostInterfacesParameter(ctx context.Context, hostId string, opt Interfaces) ([]byte, error) {
+// UpdateHostParameterInterfaces обновление в хосте параметра 'интерфейсы' (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterInterfaces(ctx context.Context, hostId string, opt Interfaces) ([]byte, error) {
 	b, err := json.Marshal(&opt.Interface)
 	if err != nil {
 		return nil, err
@@ -331,4 +349,28 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostInterfacesParameter(ctx context.Co
 				},
 	  			"id":1
 			}`, hostId, string(b))))
+}
+
+// DeleteHostGroup удаление группы хостов (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) DeleteHostGroup(ctx context.Context, groupId ...string) ([]byte, error) {
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"hostgroup.delete",
+	  			"params": [%s],
+				"id":1
+				}`, strings.Join(groupId, ","))))
+}
+
+// DeleteHost удаление хостов (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) DeleteHost(ctx context.Context, hostId ...string) ([]byte, error) {
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.delete",
+	  			"params": [%s],
+				"id":1
+				}`, strings.Join(hostId, ","))))
 }

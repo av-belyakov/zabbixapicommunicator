@@ -84,8 +84,7 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		rhl := responsejsonrpc.NewResponseGetHostGroupList()
-		data, errMsg, err := rhl.Get(res)
+		data, errMsg, err := responsejsonrpc.NewResponseGetHostGroupList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -117,8 +116,7 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
-		rghl := responsejsonrpc.NewResponseGetHostList()
-		data, errMsg, err := rghl.Get(res)
+		data, errMsg, err := responsejsonrpc.NewResponseGetHostList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {

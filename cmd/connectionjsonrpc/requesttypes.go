@@ -54,7 +54,7 @@ type Groups struct {
 
 // Group опции группы
 type Group struct {
-	GroupId string `json:"groupid"`
+	GroupId string `json:"groupid,omitempty"`
 	Name    string `json:"name,omitempty"`
 }
 
@@ -85,4 +85,9 @@ type Macro struct {
 	Macro       string `json:"macro"`
 	Value       string `json:"value"`
 	Description string `json:"description"`
+}
+
+type FilterHostGroup struct {
+	Name    []string `json:"name,omitempty"`
+	GroupId []string `json:"groupid,omitempty"`
 }
