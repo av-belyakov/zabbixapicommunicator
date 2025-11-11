@@ -190,7 +190,7 @@ func TestUpdateAnyThere(t *testing.T) {
 				2. Исправить ошибку 'Incorrect arguments passed to function.' при обновлении
 				параметра 'интерфейсы'.
 
-				3. Добавить метод обновления параметра 'inventory'.
+				3. Добавить метод обновления параметра 'inventory'. Очень нужный.
 			*/
 
 			res, err = zc.UpdateHostParameterGroup(
