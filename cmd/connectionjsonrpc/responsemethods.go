@@ -2,6 +2,8 @@ package connectionjsonrpc
 
 import (
 	"encoding/json"
+
+	"github.com/av-belyakov/zabbixapicommunicator/v2/internal/supportingfunctions"
 )
 
 // NewResponseCreateHostGroup ответ на создание группы хостов
@@ -14,12 +16,7 @@ func (r *ResponseCreateHostGroup) Get(b []byte) (*ResponseCreateHostGroup, *Resp
 	res := &ResponseCreateHostGroup{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result.GroupIds) == 0 {
@@ -41,12 +38,7 @@ func (r *ResponseHostGroupList) Get(b []byte) (*ResponseHostGroupList, *Response
 	res := &ResponseHostGroupList{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result) == 0 {
@@ -68,12 +60,7 @@ func (r *ResponseHostList) Get(b []byte) (*ResponseHostList, *ResponseError, err
 	res := &ResponseHostList{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result) == 0 {
@@ -95,12 +82,7 @@ func (r *ResponseUpdateHostGroup) Get(b []byte) (*ResponseUpdateHostGroup, *Resp
 	res := &ResponseUpdateHostGroup{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result) == 0 {
@@ -122,12 +104,7 @@ func (r *ResponseUpdateHost) Get(b []byte) (*ResponseUpdateHost, *ResponseError,
 	res := &ResponseUpdateHost{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result.HostIds) == 0 {
@@ -149,12 +126,7 @@ func (r *ResponseDeleteGroupHost) Get(b []byte) (*ResponseDeleteGroupHost, *Resp
 	res := &ResponseDeleteGroupHost{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result.GroupIds) == 0 {
@@ -176,12 +148,7 @@ func (r *ResponseDeleteHost) Get(b []byte) (*ResponseDeleteHost, *ResponseError,
 	res := &ResponseDeleteHost{}
 	resErr := &ResponseError{}
 
-	err := json.Unmarshal(b, res)
-	if err != nil {
-		err = json.Unmarshal(b, resErr)
-
-		return res, resErr, err
-	}
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result.HostIds) == 0 {
