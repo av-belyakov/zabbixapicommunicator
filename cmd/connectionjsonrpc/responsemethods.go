@@ -9,18 +9,23 @@ func NewResponseCreateHostGroup() *ResponseCreateHostGroup {
 	return &ResponseCreateHostGroup{}
 }
 
-// ResponseCreateHostGroup создание группы хостов
+// Get получить ответ на создание группы хостов
 func (r *ResponseCreateHostGroup) Get(b []byte) (*ResponseCreateHostGroup, *ResponseError, error) {
 	res := &ResponseCreateHostGroup{}
 	resErr := &ResponseError{}
 
 	err := json.Unmarshal(b, res)
 	if err != nil {
-		if err = json.Unmarshal(b, resErr); err != nil {
-			return res, resErr, err
-		}
+		err = json.Unmarshal(b, resErr)
 
-		return res, resErr, nil
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result.GroupIds) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
 	}
 
 	return res, resErr, nil
@@ -31,18 +36,23 @@ func NewResponseGetHostGroupList() *ResponseHostGroupList {
 	return &ResponseHostGroupList{}
 }
 
-// ResponseGetHostGroupList получение списка групп хостов
+// Get получить список групп хостов
 func (r *ResponseHostGroupList) Get(b []byte) (*ResponseHostGroupList, *ResponseError, error) {
 	res := &ResponseHostGroupList{}
 	resErr := &ResponseError{}
 
 	err := json.Unmarshal(b, res)
 	if err != nil {
-		if err = json.Unmarshal(b, resErr); err != nil {
-			return res, resErr, err
-		}
+		err = json.Unmarshal(b, resErr)
 
-		return res, resErr, nil
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
 	}
 
 	return res, resErr, nil
@@ -53,18 +63,23 @@ func NewResponseGetHostList() *ResponseHostList {
 	return &ResponseHostList{}
 }
 
-// ResponseHostList получение списка хостов
+// Get получить список хостов
 func (r *ResponseHostList) Get(b []byte) (*ResponseHostList, *ResponseError, error) {
 	res := &ResponseHostList{}
 	resErr := &ResponseError{}
 
 	err := json.Unmarshal(b, res)
 	if err != nil {
-		if err = json.Unmarshal(b, resErr); err != nil {
-			return res, resErr, err
-		}
+		err = json.Unmarshal(b, resErr)
 
-		return res, resErr, nil
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
 	}
 
 	return res, resErr, nil
@@ -75,18 +90,23 @@ func NewResponseUpdateHostGroup() *ResponseUpdateHostGroup {
 	return &ResponseUpdateHostGroup{}
 }
 
-// ResponseHostList получение списка группы хостов
+// Get получить список группы хостов
 func (r *ResponseUpdateHostGroup) Get(b []byte) (*ResponseUpdateHostGroup, *ResponseError, error) {
 	res := &ResponseUpdateHostGroup{}
 	resErr := &ResponseError{}
 
 	err := json.Unmarshal(b, res)
 	if err != nil {
-		if err = json.Unmarshal(b, resErr); err != nil {
-			return res, resErr, err
-		}
+		err = json.Unmarshal(b, resErr)
 
-		return res, resErr, nil
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
 	}
 
 	return res, resErr, nil
@@ -97,18 +117,77 @@ func NewResponseUpdateHost() *ResponseUpdateHost {
 	return &ResponseUpdateHost{}
 }
 
-// ResponseHostList получение списка хостов
+// Get получить список хостов
 func (r *ResponseUpdateHost) Get(b []byte) (*ResponseUpdateHost, *ResponseError, error) {
 	res := &ResponseUpdateHost{}
 	resErr := &ResponseError{}
 
 	err := json.Unmarshal(b, res)
 	if err != nil {
-		if err = json.Unmarshal(b, resErr); err != nil {
-			return res, resErr, err
-		}
+		err = json.Unmarshal(b, resErr)
 
-		return res, resErr, nil
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result.HostIds) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	return res, resErr, nil
+}
+
+// NewResponseDeleteGroupHost ответ на удаленее группы хостов
+func NewResponseDeleteGroupHost() *ResponseDeleteGroupHost {
+	return &ResponseDeleteGroupHost{}
+}
+
+// Get получить список id удаленных групп хостов
+func (r *ResponseDeleteGroupHost) Get(b []byte) (*ResponseDeleteGroupHost, *ResponseError, error) {
+	res := &ResponseDeleteGroupHost{}
+	resErr := &ResponseError{}
+
+	err := json.Unmarshal(b, res)
+	if err != nil {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result.GroupIds) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	return res, resErr, nil
+}
+
+// NewResponseDeleteHost ответ на удаленее хостов
+func NewResponseDeleteHost() *ResponseDeleteHost {
+	return &ResponseDeleteHost{}
+}
+
+// Get получить список id удаленных хостов
+func (r *ResponseDeleteHost) Get(b []byte) (*ResponseDeleteHost, *ResponseError, error) {
+	res := &ResponseDeleteHost{}
+	resErr := &ResponseError{}
+
+	err := json.Unmarshal(b, res)
+	if err != nil {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result.HostIds) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
 	}
 
 	return res, resErr, nil

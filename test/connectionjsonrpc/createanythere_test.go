@@ -1,8 +1,10 @@
 package connectionjsonrpc_test
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"maps"
 	"os"
 	"slices"
 	"strconv"
@@ -31,8 +33,7 @@ func TestCreateAnyThere(t *testing.T) {
 			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Смоленск/DEV",
 			"РЦМ/ ТЕСТОВАЯ ГРУППА РЦМ-Хабаровск/DEV",
 		}
-		newTestGroupsId map[string]string = map[string]string{}
-		newTestHosts    map[string]struct {
+		newTestHosts map[string]struct {
 			Name string
 			Ip   string
 			DNS  string
@@ -62,6 +63,8 @@ func TestCreateAnyThere(t *testing.T) {
 				Port: 9663,
 			},
 		}
+		newTestGroupsId map[string]string = map[string]string{}
+		newTestHostId   []string
 	)
 
 	if err := gotenv.Load(".env"); err != nil {
@@ -121,12 +124,10 @@ func TestCreateAnyThere(t *testing.T) {
 
 			//fmt.Printf("Add group hosts, response:'%s'\n", string(res))
 
-			rchg := responsejsonrpc.NewResponseCreateHostGroup()
-			_, errMsg, err := rchg.Get(res)
+			_, errMsg, err := responsejsonrpc.NewResponseCreateHostGroup().Get(res)
 			assert.NoError(t, err)
 
 			isExist := strings.ContainsAny(errMsg.Error.Message, "already exists")
-
 			if errMsg.Error.Message != "" && !isExist {
 				//fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", data.Error.Code, data.Error.Message, data.Error.Data)
 
@@ -138,8 +139,7 @@ func TestCreateAnyThere(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		rchg := responsejsonrpc.NewResponseGetHostGroupList()
-		data, errMsg, err := rchg.Get(res)
+		data, errMsg, err := responsejsonrpc.NewResponseGetHostGroupList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -197,8 +197,7 @@ func TestCreateAnyThere(t *testing.T) {
 			}
 
 			//fmt.Println("Response:", string(res))
-			rch := responsejsonrpc.NewResponseCreateHost()
-			_, errMsg, err := rch.Get(res)
+			rch, errMsg, err := responsejsonrpc.NewResponseCreateHost().Get(res)
 			assert.NoError(t, err)
 
 			if errMsg.Error.Message != "" {
@@ -209,11 +208,25 @@ func TestCreateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				)
 			}
+
+			if len(rch.Result.HostIds) > 0 {
+				newTestHostId = append(newTestHostId, rch.Result.HostIds...)
+			}
 		}
 		assert.False(t, isError)
 	})
 
 	t.Cleanup(func() {
+		//удаляем тестовые хосты
+		res, err := zc.DeleteHost(context.Background(), newTestHostId...)
+		assert.NoError(t, err)
+		fmt.Printf("Raw delete host:'%+v'\n", string(res))
+
+		//удаляем тестовые группы хостов
+		groupsId := slices.Sorted(maps.Keys(newTestGroupsId))
+		res, err = zc.DeleteHostGroup(context.Background(), groupsId...)
+		fmt.Printf("Raw delete host group:'%+v'\n", string(res))
+
 		os.Unsetenv("GO_TESTZABBIX_HOST")
 		os.Unsetenv("GO_TESTZABBIX_PORT")
 		os.Unsetenv("GO_TESTZABBIX_USER")

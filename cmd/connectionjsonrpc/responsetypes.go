@@ -86,11 +86,34 @@ type HostInformation struct {
 
 // ResponseUpdateHostGroup ответное сообщение на запрос обновления группы хостов
 type ResponseUpdateHostGroup struct {
-	Groupids []string `json:"groupids"`
+	//GroupIds []string `json:"groupids"`
+	Result []struct {
+		GroupIds string `json:"groupids"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
 }
 
 // ResponseUpdateHost ответное сообщение на запрос обновления хоста
 type ResponseUpdateHost struct {
+	Result struct {
+		HostIds []string `json:"hostids"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}
+
+// ResponseDeleteGroupHost ответное сообщение на запрос удаления группы хостов
+type ResponseDeleteGroupHost struct {
+	Result struct {
+		GroupIds []int `json:"groupids"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}
+
+// ResponseDeleteHost ответное сообщение на запрос удаления хостов
+type ResponseDeleteHost struct {
 	Result struct {
 		HostIds []string `json:"hostids"`
 	} `json:"result"`
