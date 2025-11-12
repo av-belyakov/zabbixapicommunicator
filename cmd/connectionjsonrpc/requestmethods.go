@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/av-belyakov/zabbixapicommunicator/v2/internal/supportingfunctions"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -287,7 +288,54 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroup(ctx context.Context
 
 // UpdateHostParameterTags обновление в хосте параметра 'теги' (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
-	b, err := json.Marshal(&opt.Tag)
+	errMsg := ResponseError{}
+	res := struct {
+		Result []struct {
+			HostId string `json:"hostid"`
+			Tags   []struct {
+				Tag   string `json:"tag"`
+				Value string `json:"value"`
+			} `json:"tags"`
+		} `json:"result"`
+	}{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+	        "output": ["%s"],
+	        "selectTags": "extend",
+	        "evaltype": 0,
+			"tags": []
+			}`, hostId),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	/*
+
+		Почему то пустой ответ. В тесте gethosttag_test.go всё работает.
+
+	*/
+
+	fmt.Println("RESPONSE:", res)
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	//дополняем запрос уже имеющимеся в хосте тегами
+	for _, v := range res.Result {
+		for _, tag := range v.Tags {
+			opt.Tag = append(opt.Tag, tag)
+		}
+	}
+
+	b, err = json.Marshal(&opt.Tag)
 	if err != nil {
 		return nil, err
 	}

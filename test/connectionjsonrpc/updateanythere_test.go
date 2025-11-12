@@ -23,6 +23,17 @@ func TestUpdateAnyThere(t *testing.T) {
 		testHost                    connjsonrpc.CreateHostOptionsRequest = connjsonrpc.CreateHostOptionsRequest{
 			Host:   "test-any-host-DEV",
 			Groups: []connjsonrpc.Group{},
+			Tags: []connjsonrpc.Tag{
+				{Tag: "begin-tag", Value: "any begin tag"},
+			},
+			Macros: []connjsonrpc.Macro{
+				{
+					Type:        "0",
+					Macro:       "{$MACRO_0}",
+					Value:       "start macro",
+					Description: "this is begining macro",
+				},
+			},
 			Interfaces: connjsonrpc.InterfaceOptions{
 				IP:    "26.66.78.100",
 				Port:  "5996",
@@ -137,7 +148,7 @@ func TestUpdateAnyThere(t *testing.T) {
 		res, err := zc.CreateHost(t.Context(), testHost)
 		assert.NoError(t, err)
 
-		//fmt.Println("Raw response:", string(res))
+		fmt.Println("Create test host, RAW response:", string(res))
 
 		rch, errMsg, err := responsejsonrpc.NewResponseCreateHost().Get(res)
 		assert.NoError(t, err)
@@ -289,7 +300,7 @@ func TestUpdateAnyThere(t *testing.T) {
 				connjsonrpc.Interfaces{
 					Interface: []connjsonrpc.InterfaceOptions{
 						{
-							Type:  2,
+							Type:  1,
 							Main:  1,
 							Useip: 1,
 							IP:    "127.0.0.127",
@@ -319,46 +330,44 @@ func TestUpdateAnyThere(t *testing.T) {
 		})
 	})
 	t.Cleanup(func() {
-		/*
-			//удаляем созданный хост
-			if testHostId != "" {
-				res, err := zc.DeleteHost(context.Background(), testHostId)
-				assert.NoError(t, err)
+		//удаляем созданный хост
+		/*if testHostId != "" {
+			res, err := zc.DeleteHost(context.Background(), testHostId)
+			assert.NoError(t, err)
 
-				dh, errMsg, err := connjsonrpc.NewResponseDeleteHost().Get(res)
-				assert.NoError(t, err)
-				assert.Greater(t, len(dh.Result.HostIds), 0)
+			dh, errMsg, err := connjsonrpc.NewResponseDeleteHost().Get(res)
+			assert.NoError(t, err)
+			assert.Greater(t, len(dh.Result.HostIds), 0)
 
-				fmt.Printf("Deleted responce delete host with id '%s': '%+v'\n", testHostId, dh)
-				fmt.Println("Delete delete host errMsg:", errMsg)
-			}
+			fmt.Printf("Deleted responce delete host with id '%s': '%+v'\n", testHostId, dh)
+			fmt.Println("Delete delete host errMsg:", errMsg)
+		}
 
-			//удаляем созданную групп хостов
-			if testHostGroupId != "" {
-				res, err := zc.DeleteHostGroup(context.Background(), testHostGroupId)
-				assert.NoError(t, err)
+		//удаляем созданную групп хостов
+		if testHostGroupId != "" {
+			res, err := zc.DeleteHostGroup(context.Background(), testHostGroupId)
+			assert.NoError(t, err)
 
-				dgh, errMsg, err := connjsonrpc.NewResponseDeleteGroupHost().Get(res)
-				assert.NoError(t, err)
-				assert.Greater(t, len(dgh.Result.GroupIds), 0)
+			dgh, errMsg, err := connjsonrpc.NewResponseDeleteGroupHost().Get(res)
+			assert.NoError(t, err)
+			assert.Greater(t, len(dgh.Result.GroupIds), 0)
 
-				fmt.Printf("Deleted responce delete group host '%+v'\n", dgh)
-				fmt.Println("Delete delete group host errMsg:", errMsg)
-			}
+			fmt.Printf("Deleted responce delete group host '%+v'\n", dgh)
+			fmt.Println("Delete delete group host errMsg:", errMsg)
+		}
 
-			//удаляем дополнительно созданную групп хостов
-			if testHostGroupId != "" {
-				res, err := zc.DeleteHostGroup(context.Background(), testAdditionalHostGroupId)
-				assert.NoError(t, err)
+		//удаляем дополнительно созданную групп хостов
+		if testHostGroupId != "" {
+			res, err := zc.DeleteHostGroup(context.Background(), testAdditionalHostGroupId)
+			assert.NoError(t, err)
 
-				dgh, errMsg, err := connjsonrpc.NewResponseDeleteGroupHost().Get(res)
-				assert.NoError(t, err)
-				assert.Greater(t, len(dgh.Result.GroupIds), 0)
+			dgh, errMsg, err := connjsonrpc.NewResponseDeleteGroupHost().Get(res)
+			assert.NoError(t, err)
+			assert.Greater(t, len(dgh.Result.GroupIds), 0)
 
-				fmt.Printf("Deleted responce delete additional group host '%+v'\n", dgh)
-				fmt.Println("Delete delete additional group host errMsg:", errMsg)
-			}
-		*/
+			fmt.Printf("Deleted responce delete additional group host '%+v'\n", dgh)
+			fmt.Println("Delete delete additional group host errMsg:", errMsg)
+		}*/
 
 		os.Unsetenv("GO_TESTZABBIX_HOST")
 		os.Unsetenv("GO_TESTZABBIX_PORT")
