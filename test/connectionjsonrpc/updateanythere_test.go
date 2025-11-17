@@ -284,8 +284,6 @@ func TestUpdateAnyThere(t *testing.T) {
 						}}})
 			assert.NoError(t, err)
 
-			fmt.Println("Raw update host parameters 'macro'", string(res))
-
 			_, errMsg, err := connjsonrpc.NewResponseUpdateHost().Get(res)
 			if errMsg.Error.Message != "" {
 				assert.Fail(t, fmt.Sprintf(
@@ -295,6 +293,10 @@ func TestUpdateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				))
 			}
+
+			macros, err := zc.GetHostMacros(t.Context(), testHostId)
+			assert.NoError(t, err)
+			assert.Equal(t, len(macros), 4)
 		})
 		t.Run("Тест 4.4. Обновление в хосте параметра 'интерфейсы'", func(t *testing.T) {
 			res, err := zc.UpdateHostParameterInterfaces(

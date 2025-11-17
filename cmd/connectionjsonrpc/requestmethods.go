@@ -223,6 +223,51 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 	return finalyResponse, nil
 }
 
+// GetHostMacros список макросов определённого хоста
+func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId string) ([]Macro, error) {
+	errMsg := &ResponseError{}
+	res := &struct {
+		JsonRPC string `json:"jsonrpc"`
+		Result  []struct {
+			HostId string  `json:"hostid"`
+			Macros []Macro `json:"macros"`
+		} `json:"result"`
+		ID int `json:"id"`
+	}{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+	        "output": ["%s"],
+	        "selectMacros": "extend",
+	        "evaltype": 0,
+			"macros": []
+			}`, hostId),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	finalyResponse := []Macro(nil)
+	for _, v := range res.Result {
+		finalyResponse = append(finalyResponse, v.Macros...)
+	}
+
+	return finalyResponse, nil
+}
+
 // GetFullHostGroupList весь список групп хостов
 func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, error) {
 	return api.sendRequest(
@@ -375,6 +420,13 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context,
 
 // UpdateHostParameterMacro обновление в хосте параметра 'макросы' (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterMacro(ctx context.Context, hostId string, opt Macros) ([]byte, error) {
+	res, err := api.GetHostMacros(ctx, hostId)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Macro = append(opt.Macro, res...)
+
 	for k, macro := range opt.Macro {
 		if macro.Type == "" {
 			opt.Macro[k].Type = "0"
