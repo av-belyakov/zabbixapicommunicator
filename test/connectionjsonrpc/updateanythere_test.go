@@ -148,8 +148,6 @@ func TestUpdateAnyThere(t *testing.T) {
 		res, err := zc.CreateHost(t.Context(), testHost)
 		assert.NoError(t, err)
 
-		fmt.Println("Create test host, RAW response:", string(res))
-
 		rch, errMsg, err := responsejsonrpc.NewResponseCreateHost().Get(res)
 		assert.NoError(t, err)
 		assert.Greater(t, len(rch.Result.HostIds), 0)
@@ -189,8 +187,8 @@ func TestUpdateAnyThere(t *testing.T) {
 				testAdditionalHostGroupId = hgs.Result.GroupIds[0]
 			}
 
-			fmt.Println("testHostGroupId =", testHostGroupId)
-			fmt.Println("testAdditionalHostGroupId =", testAdditionalHostGroupId)
+			//fmt.Println("ID testHostGroupId =", testHostGroupId)
+			//fmt.Println("ID testAdditionalHostGroupId =", testAdditionalHostGroupId)
 
 			/*
 				План работы:
@@ -251,8 +249,6 @@ func TestUpdateAnyThere(t *testing.T) {
 					}})
 			assert.NoError(t, err)
 
-			fmt.Println("Raw update host parameters 'tags'", string(res))
-
 			_, errMsg, err := connjsonrpc.NewResponseUpdateHost().Get(res)
 			if errMsg.Error.Message != "" {
 				assert.Fail(t, fmt.Sprintf(
@@ -262,6 +258,10 @@ func TestUpdateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				))
 			}
+
+			hostTags, err := zc.GetHostTags(t.Context(), testHostId)
+			assert.NoError(t, err)
+			assert.Equal(t, len(hostTags), 3)
 		})
 		t.Run("Тест 4.3. Обновление в хосте параметра 'макросы'", func(t *testing.T) {
 			res, err := zc.UpdateHostParameterMacro(
@@ -320,8 +320,6 @@ func TestUpdateAnyThere(t *testing.T) {
 
 			_, errMsg, err := connjsonrpc.NewResponseUpdateHost().Get(res)
 
-			fmt.Println("|||| errMsg:", errMsg)
-
 			if errMsg.Error.Message != "" {
 				assert.Fail(t, fmt.Sprintf(
 					"Request error, code:%d, message:'%s', data:'%s'\n",
@@ -342,8 +340,15 @@ func TestUpdateAnyThere(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Greater(t, len(dh.Result.HostIds), 0)
 
-			fmt.Printf("Deleted responce delete host with id '%s': '%+v'\n", testHostId, dh)
-			fmt.Println("Delete delete host errMsg:", errMsg)
+			//fmt.Printf("Deleted responce delete host with id '%s': '%+v'\n", testHostId, dh)
+			if errMsg.Error.Message != "" {
+				assert.Fail(t, fmt.Sprintf(
+					"Request error, code:%d, message:'%s', data:'%s'\n",
+					errMsg.Error.Code,
+					errMsg.Error.Message,
+					errMsg.Error.Data,
+				))
+			}
 		}
 
 		//удаляем созданную групп хостов
@@ -355,8 +360,15 @@ func TestUpdateAnyThere(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Greater(t, len(dgh.Result.GroupIds), 0)
 
-			fmt.Printf("Deleted responce delete group host '%+v'\n", dgh)
-			fmt.Println("Delete delete group host errMsg:", errMsg)
+			//fmt.Printf("Deleted responce delete group host '%+v'\n", dgh)
+			if errMsg.Error.Message != "" {
+				assert.Fail(t, fmt.Sprintf(
+					"Request error, code:%d, message:'%s', data:'%s'\n",
+					errMsg.Error.Code,
+					errMsg.Error.Message,
+					errMsg.Error.Data,
+				))
+			}
 		}
 
 		//удаляем дополнительно созданную групп хостов
@@ -368,8 +380,15 @@ func TestUpdateAnyThere(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Greater(t, len(dgh.Result.GroupIds), 0)
 
-			fmt.Printf("Deleted responce delete additional group host '%+v'\n", dgh)
-			fmt.Println("Delete delete additional group host errMsg:", errMsg)
+			//fmt.Printf("Deleted responce delete additional group host '%+v'\n", dgh)
+			if errMsg.Error.Message != "" {
+				assert.Fail(t, fmt.Sprintf(
+					"Request error, code:%d, message:'%s', data:'%s'\n",
+					errMsg.Error.Code,
+					errMsg.Error.Message,
+					errMsg.Error.Data,
+				))
+			}
 		}*/
 
 		os.Unsetenv("GO_TESTZABBIX_HOST")

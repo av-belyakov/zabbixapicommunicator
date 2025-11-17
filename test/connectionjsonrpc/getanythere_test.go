@@ -151,6 +151,24 @@ func TestGetAnyThereData(t *testing.T) {
 		assert.Greater(t, len(data.Result), 0)
 	})
 
+	t.Run("Тест 4. Получить список всех хостов", func(t *testing.T) {
+		data, err := zc.GetHosts(t.Context())
+		assert.NoError(t, err)
+
+		res, errMsg, err := connjsonrpc.NewResponseGetHostList().Get(data)
+		assert.NoError(t, err)
+
+		if errMsg.Error.Message != "" {
+			assert.Fail(t, fmt.Sprintf(
+				"Request error, code:%d, message:'%s', data:'%s'\n",
+				errMsg.Error.Code,
+				errMsg.Error.Message,
+				errMsg.Error.Data,
+			))
+		}
+		assert.Greater(t, len(res.Result), 0)
+	})
+
 	//	t.Run("", func(t *testing.T) {})
 
 	t.Cleanup(func() {

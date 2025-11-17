@@ -145,6 +145,20 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte
 			}`))
 }
 
+// GetGetHosts список хостов
+func (api *ZabbixConnectionJsonRPC) GetHosts(ctx context.Context) ([]byte, error) {
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.get",
+	  			"params": {
+					"output":"extend"
+				},
+	  			"id":1
+			}`))
+}
+
 // GetHostLis список хостов для определённых групп
 func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...string) ([]byte, error) {
 	if len(groupId) == 0 {
@@ -162,6 +176,51 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 				},
 	  			"id":1
 			}`, strings.Join(groupId, ","))))
+}
+
+// GetHostTags список тегов у определённого хоста
+func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId string) ([]Tag, error) {
+	errMsg := &ResponseError{}
+	res := &struct {
+		JsonRPC string `json:"jsonrpc"`
+		Result  []struct {
+			HostId string `json:"hostid"`
+			Tags   []Tag  `json:"tags"`
+		} `json:"result"`
+		ID int `json:"id"`
+	}{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+	        "output": ["%s"],
+	        "selectTags": "extend",
+	        "evaltype": 0,
+			"tags": []
+			}`, hostId),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	finalyResponse := []Tag(nil)
+	for _, v := range res.Result {
+		finalyResponse = append(finalyResponse, v.Tags...)
+	}
+
+	return finalyResponse, nil
 }
 
 // GetFullHostGroupList весь список групп хостов
@@ -288,57 +347,15 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroup(ctx context.Context
 
 // UpdateHostParameterTags обновление в хосте параметра 'теги' (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
-	errMsg := ResponseError{}
-	res := struct {
-		JsonRPC string `json:"jsonrpc"`
-		Result  []struct {
-			HostId string `json:"hostid"`
-			Tags   []struct {
-				Tag   string `json:"tag"`
-				Value string `json:"value"`
-			} `json:"tags"`
-		} `json:"result"`
-		ID int `json:"id"`
-	}{}
-
-	//получаем информацию о хосте
-	b, err := api.CustomRequest(
-		ctx,
-		"host.get",
-		fmt.Sprintf(`{
-	        "output": ["%s"],
-	        "selectTags": "extend",
-	        "evaltype": 0,
-			"tags": []
-			}`, hostId),
-	)
+	res, err := api.GetHostTags(ctx, hostId)
 	if err != nil {
 		return nil, err
 	}
 
-	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
-	/*
-
-		Почему то пустой ответ. В тесте gethosttag_test.go всё работает.
-
-	*/
-
-	fmt.Printf("func 'UpdateHostParameterTags' RAW:'%s'\n", string(b))
-	fmt.Printf("func 'UpdateHostParameterTags' RESPONSE: '%#v'\n", res)
-
-	//если нет ошибок но ответ попрежнему пустой
-	if len(res.Result) == 0 {
-		return nil, errors.New(errMsg.Error.Message)
-	}
-
 	//дополняем запрос уже имеющимеся в хосте тегами
-	for _, v := range res.Result {
-		for _, tag := range v.Tags {
-			opt.Tag = append(opt.Tag, tag)
-		}
-	}
+	opt.Tag = append(opt.Tag, res...)
 
-	b, err = json.Marshal(&opt.Tag)
+	b, err := json.Marshal(&opt.Tag)
 	if err != nil {
 		return nil, err
 	}
