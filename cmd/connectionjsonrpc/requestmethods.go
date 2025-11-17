@@ -290,13 +290,15 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroup(ctx context.Context
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
 	errMsg := ResponseError{}
 	res := struct {
-		Result []struct {
+		JsonRPC string `json:"jsonrpc"`
+		Result  []struct {
 			HostId string `json:"hostid"`
 			Tags   []struct {
 				Tag   string `json:"tag"`
 				Value string `json:"value"`
 			} `json:"tags"`
 		} `json:"result"`
+		ID int `json:"id"`
 	}{}
 
 	//получаем информацию о хосте
@@ -321,7 +323,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context,
 
 	*/
 
-	fmt.Println("RESPONSE:", res)
+	fmt.Printf("func 'UpdateHostParameterTags' RAW:'%s'\n", string(b))
+	fmt.Printf("func 'UpdateHostParameterTags' RESPONSE: '%#v'\n", res)
 
 	//если нет ошибок но ответ попрежнему пустой
 	if len(res.Result) == 0 {

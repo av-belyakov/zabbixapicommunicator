@@ -120,3 +120,14 @@ type ResponseDeleteHost struct {
 	JsonRPC string `json:"jsonrpc"`
 	ID      int    `json:"id"`
 }
+
+type ResponseHostTags struct {
+	Result struct {
+		Tags []struct {
+			Tag   string `tag:"tag"`
+			Value string `tag:"value"`
+		} `json:"tags"`
+	} `json:"tags"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}

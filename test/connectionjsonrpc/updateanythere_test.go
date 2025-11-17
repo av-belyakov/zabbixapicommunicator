@@ -209,9 +209,12 @@ func TestUpdateAnyThere(t *testing.T) {
 				testHostId,
 				connjsonrpc.Groups{
 					Group: []connjsonrpc.Group{
-						{
-							GroupId: testHostGroupId,
-						},
+						//
+						// тут если добавить только id новой группы группа которая
+						// уже была добавлена,  будет перезатёрта
+						//{
+						//	GroupId: testHostGroupId,
+						//},
 						{
 							GroupId: testAdditionalHostGroupId,
 						},
