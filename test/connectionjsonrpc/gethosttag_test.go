@@ -35,7 +35,7 @@ func TestGetHostTag(t *testing.T) {
 					Description: "this is begining macro",
 				},
 			},
-			Interfaces: connjsonrpc.InterfaceOptions{
+			Interfaces: connjsonrpc.InterfaceOptionsRequest{
 				IP:    "126.166.78.111",
 				Port:  "1996",
 				DNS:   "example.domainname.org",

@@ -10,26 +10,26 @@ type CreateHostOptionsRequest struct {
 		MacaddressA string `json:"macaddress_a"`
 		MacaddressB string `json:"macaddress_b"`
 	} `json:"inventory"`
-	Interfaces    InterfaceOptions `json:"interfaces"`
-	Host          string           `validate:"required" json:"host"`
-	InventoryMode int              `json:"inventory_mode"`
+	Interfaces    InterfaceOptionsRequest `json:"interfaces"`
+	Host          string                  `validate:"required" json:"host"`
+	InventoryMode int                     `json:"inventory_mode"`
 }
 
-// Interfaces интерфейсы
-type Interfaces struct {
-	Interface []InterfaceOptions `json:"interface"`
+// InterfacesRequest интерфейсы, для запроса
+type InterfacesRequest struct {
+	Interface []InterfaceOptionsRequest `json:"interface"`
 }
 
-// InterfaceOptions опции интерфейса хоста
-type InterfaceOptions struct {
+// InterfaceOptionsRequest опции интерфейса хоста, для запроса
+type InterfaceOptionsRequest struct {
 	Details DetailsOptions `json:"details"`
-	IP      string         `validate:"ip" json:"ip"`
-	DNS     string         `json:"dns"`
+	IP      string         `validate:"ip" json:"ip"` // обязательно для заполнения если Useip = 1
+	DNS     string         `json:"dns"`              // обязательно для заполнения если Useip = 0
 	Port    string         `json:"port"`
 	HostId  string         `json:"hostid"`
-	Type    int            `validate:"oneof=1 2 3 4" json:"type"`
-	Main    int            `validate:"oneof=0 1" json:"main"`
-	Useip   int            `validate:"oneof=0 1" json:"useip"`
+	Type    int            `validate:"oneof=1 2 3 4" json:"type"` // 1 - agent, 2 - SNMP, 3 - IPMI, 4 - JMX
+	Main    int            `validate:"oneof=0 1" json:"main"`     // 1 - основной интерфейс (может быть только один основной интерфейс)
+	Useip   int            `validate:"oneof=0 1" json:"useip"`    // 1 - использовать IP-адрес, 0 - использовать DNS
 }
 
 // DetailsOptions опции деталей интерфейса

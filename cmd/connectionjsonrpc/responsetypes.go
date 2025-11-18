@@ -120,3 +120,29 @@ type ResponseDeleteHost struct {
 	JsonRPC string `json:"jsonrpc"`
 	ID      int    `json:"id"`
 }
+
+// ResponseGetInterfaces оответное сообщение на запрос интерфейсов
+type ResponseGetInterfaces struct {
+	Result []struct {
+		HostId     string              `json:"hostid"`
+		Interfaces []ResponseInterface `json:"interfaces"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}
+
+type ResponseInterface struct {
+	Details      DetailsOptions `json:"details"`
+	Interfaceid  string         `json:"interfaceid"`
+	HostId       string         `json:"hostid"`
+	Useip        string         `json:"useip"`
+	Type         string         `json:"type"`
+	Main         string         `json:"main"`
+	IP           string         `json:"ip"`
+	DNS          string         `json:"dns"`
+	Port         string         `json:"port"`
+	Error        string         `json:"error"`
+	Available    string         `json:"available"`
+	ErrorsFrom   string         `json:"errors_from"`
+	DisableUntil string         `json:"disable_until"`
+}

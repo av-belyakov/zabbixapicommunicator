@@ -34,7 +34,7 @@ func TestUpdateAnyThere(t *testing.T) {
 					Description: "this is begining macro",
 				},
 			},
-			Interfaces: connjsonrpc.InterfaceOptions{
+			Interfaces: connjsonrpc.InterfaceOptionsRequest{
 				IP:    "26.66.78.100",
 				Port:  "5996",
 				DNS:   "example.domainname.org",
@@ -293,12 +293,12 @@ func TestUpdateAnyThere(t *testing.T) {
 			res, err := zc.UpdateHostParameterInterfaces(
 				t.Context(),
 				testHostId,
-				connjsonrpc.Interfaces{
-					Interface: []connjsonrpc.InterfaceOptions{
+				connjsonrpc.InterfacesRequest{
+					Interface: []connjsonrpc.InterfaceOptionsRequest{
 						{
 							Type:  1,
-							Main:  1,
-							Useip: 1,
+							Main:  0,
+							Useip: 0,
 							IP:    "127.0.0.127",
 							DNS:   "dns.example.domain-name.org",
 							Port:  "10051",
@@ -309,10 +309,7 @@ func TestUpdateAnyThere(t *testing.T) {
 						}}})
 			assert.NoError(t, err)
 
-			fmt.Println("Raw update host parameters 'interface'", string(res))
-
 			_, errMsg, err := connjsonrpc.NewResponseUpdateHost().Get(res)
-
 			if errMsg.Error.Message != "" {
 				assert.Fail(t, fmt.Sprintf(
 					"Request error, code:%d, message:'%s', data:'%s'\n",
@@ -321,6 +318,10 @@ func TestUpdateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				))
 			}
+
+			hostInterfaces, err := zc.GetHostInterface(t.Context(), testHostId)
+			assert.NoError(t, err)
+			assert.Equal(t, len(hostInterfaces), 2)
 		})
 	})
 	t.Cleanup(func() {

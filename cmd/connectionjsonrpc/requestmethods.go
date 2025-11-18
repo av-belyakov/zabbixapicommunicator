@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/av-belyakov/zabbixapicommunicator/v2/internal/supportingfunctions"
@@ -313,6 +314,46 @@ func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId st
 	return finalyResponse, nil
 }
 
+// GetHostInterface список интерфейсов хоста
+func (api *ZabbixConnectionJsonRPC) GetHostInterface(ctx context.Context, hostId string) ([]ResponseInterface, error) {
+	errMsg := &ResponseError{}
+	res := &ResponseGetInterfaces{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+			"hostids": "%s",
+	        "selectInterfaces": "extend",
+	        "evaltype": 0,
+			"interfaces": []
+			}`, hostId),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	finalyResponse := []ResponseInterface(nil)
+	for _, v := range res.Result {
+		for _, vv := range v.Interfaces {
+			finalyResponse = append(finalyResponse, vv)
+		}
+	}
+
+	return finalyResponse, nil
+}
+
 // GetFullHostGroupList весь список групп хостов
 func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, error) {
 	return api.sendRequest(
@@ -362,6 +403,8 @@ func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name st
 
 // CreateHost создание хоста (обязательны права супер-администратора)
 // Подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/host/create
+// Стоит обратить внимание, что при создании хоста, у создаваемого хоста
+// может быть только один основной интерфейс. Два основных интерфейса быть не может.
 func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHostOptionsRequest) ([]byte, error) {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	err := validate.Struct(&opt)
@@ -512,7 +555,48 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterMacro(ctx context.Context
 }
 
 // UpdateHostParameterInterfaces обновление в хосте параметра 'интерфейсы' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostParameterInterfaces(ctx context.Context, hostId string, opt Interfaces) ([]byte, error) {
+// Стоит обратить внимание, что при обновлении интерфейса, параметр 'main' может быть равен '1', что означает, что
+// интерфейс будет основным, только если нет другого основного интерфейса. Два основных интерфейса быть не может.
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterInterfaces(ctx context.Context, hostId string, opt InterfacesRequest) ([]byte, error) {
+	if len(opt.Interface) == 0 {
+		return nil, fmt.Errorf("parameter 'opt' cannot be empty")
+	}
+
+	res, err := api.GetHostInterface(ctx, hostId)
+	if err != nil {
+		return nil, err
+	}
+
+	//дополняем запрос уже имеющимеся в хосте тегами
+	for _, v := range res {
+		m, err := strconv.ParseInt(v.Main, 10, 32)
+		if err != nil {
+			m = 0
+		}
+
+		t, err := strconv.ParseInt(v.Type, 10, 32)
+		if err != nil {
+			t = 1
+		}
+
+		uip, err := strconv.ParseInt(v.Useip, 10, 32)
+		if err != nil {
+			uip = 1
+		}
+
+		opt.Interface = append(opt.Interface, InterfaceOptionsRequest{
+			Details: v.Details,
+			IP:      v.IP,
+			DNS:     v.DNS,
+			Port:    v.Port,
+			HostId:  v.HostId,
+			Main:    int(m),
+			Type:    int(t),
+			Useip:   int(uip),
+		})
+
+	}
+
 	b, err := json.Marshal(&opt.Interface)
 	if err != nil {
 		return nil, err
