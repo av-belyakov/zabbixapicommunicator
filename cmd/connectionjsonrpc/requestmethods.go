@@ -178,16 +178,16 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 			}`, strings.Join(groupId, ","))))
 }
 
-// GetHostTags список тегов у определённого хоста
-func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId string) ([]Tag, error) {
+// GetHostGroups список групп к которым принадлежит хост с заданным id
+func (api *ZabbixConnectionJsonRPC) GetHostGroups(ctx context.Context, hostId string) ([]Group, error) {
 	errMsg := &ResponseError{}
 	res := &struct {
-		JsonRPC string `json:"jsonrpc"`
-		Result  []struct {
-			HostId string `json:"hostid"`
-			Tags   []Tag  `json:"tags"`
+		Result []struct {
+			HostGroups []Group `json:"hostgroups"`
+			HostId     string  `json:"hostid"`
 		} `json:"result"`
-		ID int `json:"id"`
+		JsonRPC string `json:"jsonrpc"`
+		ID      int    `json:"id"`
 	}{}
 
 	//получаем информацию о хосте
@@ -195,7 +195,52 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 		ctx,
 		"host.get",
 		fmt.Sprintf(`{
-	        "output": ["%s"],
+			"hostids": "%s",
+	        "selectHostGroups": "extend",
+	        "evaltype": 0,
+			"groups": []
+			}`, hostId),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	finalyResponse := []Group(nil)
+	for _, v := range res.Result {
+		finalyResponse = append(finalyResponse, v.HostGroups...)
+	}
+
+	return finalyResponse, nil
+}
+
+// GetHostTags список тегов у определённого хоста
+func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId string) ([]Tag, error) {
+	errMsg := &ResponseError{}
+	res := &struct {
+		Result []struct {
+			Tags   []Tag  `json:"tags"`
+			HostId string `json:"hostid"`
+		} `json:"result"`
+		JsonRPC string `json:"jsonrpc"`
+		ID      int    `json:"id"`
+	}{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+			"hostids": "%s",
 	        "selectTags": "extend",
 	        "evaltype": 0,
 			"tags": []
@@ -227,12 +272,12 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId string) ([]Macro, error) {
 	errMsg := &ResponseError{}
 	res := &struct {
-		JsonRPC string `json:"jsonrpc"`
-		Result  []struct {
-			HostId string  `json:"hostid"`
+		Result []struct {
 			Macros []Macro `json:"macros"`
+			HostId string  `json:"hostid"`
 		} `json:"result"`
-		ID int `json:"id"`
+		JsonRPC string `json:"jsonrpc"`
+		ID      int    `json:"id"`
 	}{}
 
 	//получаем информацию о хосте
@@ -240,7 +285,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId st
 		ctx,
 		"host.get",
 		fmt.Sprintf(`{
-	        "output": ["%s"],
+			"hostids": "%s",
 	        "selectMacros": "extend",
 	        "evaltype": 0,
 			"macros": []
@@ -370,9 +415,24 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostGroup(ctx context.Context, groupId
 			}`, groupId, name)))
 }
 
-// UpdateHostParameterGroup обновление в хосте параметра 'группы хостов' (обязательны права супер-администратора)
-func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroup(ctx context.Context, hostId string, opt Groups) ([]byte, error) {
-	b, err := json.Marshal(&opt.Group)
+// UpdateHostParameterGroups обновление в хосте параметра 'группы хостов' (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroups(ctx context.Context, hostId string, hostGroupId string) ([]byte, error) {
+	res, err := api.GetHostGroups(ctx, hostId)
+	if err != nil {
+		return nil, err
+	}
+
+	req := []struct {
+		GroupId string `json:"groupid"`
+	}{{GroupId: hostGroupId}}
+	//дополняем запрос уже имеющимеся в хосте тегами
+	for _, v := range res {
+		req = append(req, struct {
+			GroupId string `json:"groupid"`
+		}{GroupId: v.GroupId})
+	}
+
+	b, err := json.Marshal(&req)
 	if err != nil {
 		return nil, err
 	}

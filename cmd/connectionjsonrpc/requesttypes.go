@@ -55,7 +55,9 @@ type Groups struct {
 // Group опции группы
 type Group struct {
 	GroupId string `json:"groupid,omitempty"`
+	Flags   string `json:"flags,omitzero"`
 	Name    string `json:"name,omitempty"`
+	UUID    string `json:"uuid,omitempty"`
 }
 
 // Tags теги

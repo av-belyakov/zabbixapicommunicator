@@ -202,25 +202,12 @@ func TestUpdateAnyThere(t *testing.T) {
 				3. Добавить метод обновления параметра 'inventory'. Очень нужный.
 			*/
 
-			res, err = zc.UpdateHostParameterGroup(
+			//добавляем дополнительную группу хостов в хост
+			res, err = zc.UpdateHostParameterGroups(
 				t.Context(),
 				testHostId,
-				connjsonrpc.Groups{
-					Group: []connjsonrpc.Group{
-						//
-						// тут если добавить только id новой группы группа которая
-						// уже была добавлена,  будет перезатёрта
-						//{
-						//	GroupId: testHostGroupId,
-						//},
-						{
-							GroupId: testAdditionalHostGroupId,
-						},
-					}},
-			)
+				testAdditionalHostGroupId)
 			assert.NoError(t, err)
-
-			fmt.Println("Raw update host parameters 'host group'", string(res))
 
 			_, errMsgUpdate, err := connjsonrpc.NewResponseUpdateHost().Get(res)
 			if errMsgUpdate.Error.Message != "" {
@@ -231,6 +218,10 @@ func TestUpdateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				))
 			}
+
+			hostGroups, err := zc.GetHostGroups(t.Context(), testHostId)
+			assert.NoError(t, err)
+			assert.Equal(t, len(hostGroups), 2)
 		})
 		t.Run("Тест 4.2. Обновление в хосте параметра 'теги'", func(t *testing.T) {
 			res, err := zc.UpdateHostParameterTags(
