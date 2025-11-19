@@ -354,6 +354,38 @@ func (api *ZabbixConnectionJsonRPC) GetHostInterface(ctx context.Context, hostId
 	return finalyResponse, nil
 }
 
+// GetHostInventory данные по инвенторизации хоста
+func (api *ZabbixConnectionJsonRPC) GetHostInventory(ctx context.Context, hostId string) (*ResponseInventory, error) {
+	errMsg := &ResponseError{}
+	res := &ResponseInventory{}
+
+	//получаем информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+			"hostids": "%s",
+	        "selectInventory": "extend",
+	        "evaltype": 0
+			}`, hostId),
+	)
+	if err != nil {
+		return res, err
+	}
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return res, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой
+	if len(res.Result) == 0 {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	return res, nil
+}
+
 // GetFullHostGroupList весь список групп хостов
 func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, error) {
 	return api.sendRequest(
@@ -456,6 +488,27 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostGroup(ctx context.Context, groupId
 				},
 	  			"id":1
 			}`, groupId, name)))
+}
+
+// CreateHostParameterInventory создание инвенторизации хоста (обязательны права супер-администратора)
+func (api *ZabbixConnectionJsonRPC) CreateHostParameterInventory(ctx context.Context, hostId string, req HostInventory) ([]byte, error) {
+	b, err := json.Marshal(&req)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.sendRequest(
+		ctx,
+		strings.NewReader(fmt.Sprintf(`{
+	  			"jsonrpc":"2.0",
+	  			"method":"host.update",
+	  			"params": {
+					"hostid":"%s",
+					"inventory": %s 
+				},
+	  			"id":1
+			}`, hostId, string(b))))
+
 }
 
 // UpdateHostParameterGroups обновление в хосте параметра 'группы хостов' (обязательны права супер-администратора)

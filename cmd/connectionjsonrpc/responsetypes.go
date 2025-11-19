@@ -1,6 +1,6 @@
 package connectionjsonrpc
 
-// ResponseError ошибка
+// ResponseError общее описание ошибок
 type ResponseError struct {
 	Error struct {
 		Message string `json:"message"`
@@ -49,41 +49,6 @@ type ResponseHostList struct {
 	Result []HostInformation `json:"result"`
 }
 
-// HostInformation информация по хостам
-type HostInformation struct {
-	UUID              string `json:"uuid"`
-	HostId            string `json:"hostid"`
-	ProxyId           string `json:"proxyId"`
-	Host              string `json:"host"`
-	Status            string `json:"status"`
-	Name              string `json:"name"`
-	Flags             string `json:"flags"`
-	Readme            string `json:"readme"`
-	Templateid        string `json:"templateid"`
-	Description       string `json:"description"`
-	TlsConnect        string `json:"tls_connect"`
-	TlsAccept         string `json:"tls_accept"`
-	TlsIssuer         string `json:"tls_issuer"`
-	TlsSubject        string `json:"tls_subject"`
-	CustomInterfaces  string `json:"custom_interfaces"`
-	VendorName        string `json:"vendor_name"`
-	VendorVersion     string `json:"vendor_version"`
-	ProxyGroupid      string `json:"proxy_groupid"`
-	MonitoredBy       string `json:"monitored_by"`
-	WizardReady       string `json:"wizard_ready"`
-	InventoryMode     string `json:"inventory_mode"`
-	ActiveAvailable   string `json:"active_available"`
-	AssignedProxyid   string `json:"assigned_proxyid"`
-	IpmiAuthtype      string `json:"ipmi_authtype"`
-	IpmiPrivilege     string `json:"ipmi_privilege"`
-	IpmiUsername      string `json:"ipmi_username"`
-	IpmiPassword      string `json:"ipmi_password"`
-	Maintenanceid     string `json:"maintenanceid"`
-	MaintenanceStatus string `json:"maintenance_status"`
-	MaintenanceType   string `json:"maintenance_type"`
-	MaintenanceFrom   string `json:"maintenance_from"`
-}
-
 // ResponseUpdateHostGroup ответное сообщение на запрос обновления группы хостов
 type ResponseUpdateHostGroup struct {
 	//GroupIds []string `json:"groupids"`
@@ -121,9 +86,10 @@ type ResponseDeleteHost struct {
 	ID      int    `json:"id"`
 }
 
-// ResponseGetInterfaces оответное сообщение на запрос интерфейсов
+// ResponseGetInterfaces ответное сообщение на запрос интерфейсов
 type ResponseGetInterfaces struct {
 	Result []struct {
+		Host       string              `json:"host"`
 		HostId     string              `json:"hostid"`
 		Interfaces []ResponseInterface `json:"interfaces"`
 	} `json:"result"`
@@ -131,6 +97,7 @@ type ResponseGetInterfaces struct {
 	ID      int    `json:"id"`
 }
 
+// ResponseInterface описание интерфейса
 type ResponseInterface struct {
 	Details      DetailsOptions `json:"details"`
 	Interfaceid  string         `json:"interfaceid"`
@@ -145,4 +112,15 @@ type ResponseInterface struct {
 	Available    string         `json:"available"`
 	ErrorsFrom   string         `json:"errors_from"`
 	DisableUntil string         `json:"disable_until"`
+}
+
+// ResponseInventory инвенторизация хоста
+type ResponseInventory struct {
+	Result []struct {
+		Host      string        `json:"host"`
+		HostId    string        `json:"hostid"`
+		Inventory HostInventory `json:"inventory"`
+	} `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
 }

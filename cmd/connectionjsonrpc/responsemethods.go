@@ -28,6 +28,28 @@ func (r *ResponseCreateHostGroup) Get(b []byte) (*ResponseCreateHostGroup, *Resp
 	return res, resErr, nil
 }
 
+// NewResponseCreateHost ответ на создание хоста
+func NewResponseCreateHost() *ResponseCreateHost {
+	return &ResponseCreateHost{}
+}
+
+// Get получить ответ на создание хоста
+func (r *ResponseCreateHost) Get(b []byte) (*ResponseCreateHost, *ResponseError, error) {
+	res := &ResponseCreateHost{}
+	resErr := &ResponseError{}
+
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
+
+	//если нет ошибок но ответ попрежнему пустой
+	if len(res.Result.HostIds) == 0 {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	return res, resErr, nil
+}
+
 // NewResponseGetHostGroupList ответ на запрос с целью получения списка групп хостов
 func NewResponseGetHostGroupList() *ResponseHostGroupList {
 	return &ResponseHostGroupList{}

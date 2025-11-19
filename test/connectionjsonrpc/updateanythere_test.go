@@ -1,6 +1,7 @@
 package connectionjsonrpc_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -43,7 +44,9 @@ func TestUpdateAnyThere(t *testing.T) {
 				Useip: 1,
 				Details: connjsonrpc.DetailsOptions{
 					Version: 1,
-				}}}
+				}},
+			IpmiPrivilege: 1,
+		}
 		testAdditionalHostGroupId string
 		testHostGroupId           string
 		testHostId                string
@@ -323,10 +326,51 @@ func TestUpdateAnyThere(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, len(hostInterfaces), 2)
 		})
+
+		t.Run("Тест 4.5. Запись нового параметра 'инвентаризация', старые данные будут затёрты", func(t *testing.T) {
+			inventName := "My new test inventory parameter"
+
+			res, err := zc.CreateHostParameterInventory(
+				t.Context(),
+				testHostId,
+				connjsonrpc.HostInventory{
+					Name:     inventName,
+					OS:       "MacOS",
+					OSFull:   "MacOS 26.1, Tahoe",
+					Type:     "simple inventory",
+					TypeFull: "simple inventory for test",
+					Tag:      "Host MacOS",
+					Location: "Moscow",
+					Contact:  "Russia, Moscow, st. Yaroslavskoe, 34",
+				})
+			assert.NoError(t, err)
+
+			createdHost, errMsg, err := connjsonrpc.NewResponseCreateHost().Get(res)
+			assert.NoError(t, err)
+
+			if errMsg.Error.Message != "" {
+				assert.Fail(t, fmt.Sprintf(
+					"Request error, code:%d, message:'%s', data:'%s'\n",
+					errMsg.Error.Code,
+					errMsg.Error.Message,
+					errMsg.Error.Data,
+				))
+			}
+
+			assert.Greater(t, len(createdHost.Result.HostIds), 0)
+			assert.Equal(t, createdHost.Result.HostIds[0], testHostId)
+
+			hostInventory, err := zc.GetHostInventory(t.Context(), testHostId)
+			assert.NoError(t, err)
+
+			//fmt.Printf("Host inventory: %+v\n", hostInventory)
+
+			assert.Equal(t, hostInventory.Result[0].Inventory.Name, inventName)
+		})
 	})
 	t.Cleanup(func() {
 		//удаляем созданный хост
-		/*if testHostId != "" {
+		if testHostId != "" {
 			res, err := zc.DeleteHost(context.Background(), testHostId)
 			assert.NoError(t, err)
 
@@ -383,7 +427,7 @@ func TestUpdateAnyThere(t *testing.T) {
 					errMsg.Error.Data,
 				))
 			}
-		}*/
+		}
 
 		os.Unsetenv("GO_TESTZABBIX_HOST")
 		os.Unsetenv("GO_TESTZABBIX_PORT")

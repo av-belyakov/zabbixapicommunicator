@@ -2,17 +2,21 @@ package connectionjsonrpc
 
 // CreateHostOptionsRequest опции создания хоста
 type CreateHostOptionsRequest struct {
-	Tags      []Tag      `json:"tags"`
-	Groups    []Group    `validate:"required" json:"groups"`
-	Macros    []Macro    `json:"macros"`
-	Templates []Template `json:"templates"`
-	Inventory struct {
-		MacaddressA string `json:"macaddress_a"`
-		MacaddressB string `json:"macaddress_b"`
-	} `json:"inventory"`
+	Tags          []Tag                   `json:"tags"`
+	Groups        []Group                 `validate:"required" json:"groups"`
+	Macros        []Macro                 `json:"macros"`
+	Templates     []Template              `json:"templates"`
+	Inventory     HostInventory           `json:"inventory"`
 	Interfaces    InterfaceOptionsRequest `json:"interfaces"`
+	Name          string                  `json:"name"`
 	Host          string                  `validate:"required" json:"host"`
-	InventoryMode int                     `json:"inventory_mode"`
+	Description   string                  `json:"description"`
+	IpmiUsername  string                  `json:"ipmi_username"`
+	IpmiPassword  string                  `json:"ipmi_password"`
+	InventoryMode int                     `validate:"oneof=-1 0 1" json:"inventory_mode"`          // -1 - не использовать, 0 - в ручную, 1 - автоматически
+	IpmiAuthtype  int                     `validate:"oneof=-1 0 1 2 3 4 5 6" json:"ipmi_authtype"` // IPMI алгоритм аутентификации, -1 - default, 0 - none, 1 - MD2, 2 - MD5, 4 - straight, 5 - OEM, 6 - RMCP+
+	IpmiPrivilege int                     `validate:"oneof=1 2 3 4 5" json:"ipmi_privilege"`       // уровень привилегий IPMI, 1 - callback, 2 - user, 3 - operator, 4 - administrator, 5 - OEM
+	Flags         int                     `validate:"oneof=0 4" json:"flags"`                      // происхождение носителя, 0 - обычный хост, 4 - хост полученный из носителя
 }
 
 // InterfacesRequest интерфейсы, для запроса
