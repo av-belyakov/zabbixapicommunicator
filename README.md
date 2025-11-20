@@ -14,4 +14,4 @@
 
 ### Подпакет 'connectionzabbixagent'
 
-Пакет '_connectionzabbixagent_' позволяет отправлять некоторые данные Zabbix серверу через официального zabbix-агента.
+Подпакет '_connectionzabbixagent_' позволяет отправлять некоторые данные Zabbix серверу через официального zabbix-агента.
