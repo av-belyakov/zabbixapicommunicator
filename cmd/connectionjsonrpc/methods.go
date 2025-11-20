@@ -43,12 +43,12 @@ func WithHost(v string) zabbixConnectionOptions {
 
 // WithPort сетевой порт API
 func WithPort(v int) zabbixConnectionOptions {
-	return func(n *ZabbixConnectionJsonRPC) error {
+	return func(api *ZabbixConnectionJsonRPC) error {
 		if v <= 0 || v > 65535 {
 			return errors.New("an incorrect network port value was received")
 		}
 
-		n.port = v
+		api.port = v
 
 		return nil
 	}
@@ -82,12 +82,12 @@ func WithPasswd(v string) zabbixConnectionOptions {
 
 // WithConnectionTimeout временной интервал соединения в секундах
 func WithConnectionTimeout(v int) zabbixConnectionOptions {
-	return func(n *ZabbixConnectionJsonRPC) error {
+	return func(api *ZabbixConnectionJsonRPC) error {
 		if v <= 1 || v > 180 {
 			return errors.New("an incorrect value, the value should be in the range from 1 to 1800")
 		}
 
-		n.connectionTimeout = time.Duration(v) * time.Second
+		api.connectionTimeout = time.Duration(v) * time.Second
 
 		return nil
 	}

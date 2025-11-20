@@ -43,7 +43,6 @@ zc, err := connectionjsonrpc.NewConnect(
 			connectionjsonrpc.WithLogin("user"),
 			connectionjsonrpc.WithPasswd("passwd"),
 		)
-
 err = zc.AuthorizationStart(context.Background())
 ```
 
