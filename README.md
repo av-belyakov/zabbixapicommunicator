@@ -1,5 +1,8 @@
 # Zabbixapicommunicator
 
+[![Go Version](https://img.shields.io/badge/Go-1.24.4+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
+
 Пакет '**zabbixapicommunicator**' реализует подключение и дальнейшее взаимодействие с Zabbix с целью передачи данных, получения данных или настройки некоторых действий, которые будут выполнятся Zabbix при изменении данных. Например, действий создания, изменения или удаления групп хостов и хостов, выполнении тригеров, 'действий обнаружения', 'действий авторегистрации' и т.д.
 
 Пакет актуален для версии Zabbix 7.x.
