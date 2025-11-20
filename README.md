@@ -6,12 +6,20 @@
 
 Пакет '**zabbixapicommunicator**' состоит из двух подпакетов: '_connectionjsonrpc_' и '_connectionzabbixagent_'.
 
-### Подпакет 'connectionjsonrpc'
+## Подпакет 'connectionjsonrpc'
 
 Подпакет '_connectionjsonrpc_' позволяет взаимодействовать с API Zabbix по протоколам HTTP или HTTPS методом JsonRPC. Подпакет позволяет получать, обновлять и удалять некоторые данные из базы данных Zabbix. Реализована лишь малая часть монипляций с данными в Zabbix с использованием его API. Подробнее по работе с API Zabbix https://www.zabbix.com/documentation/current/en/manual/api.
 
 Однако, следует обратить внимание, что в подпакете '_connectionjsonrpc_' есть метод **CustomRequest** который позволяет гибко настраивать запросы к API Zabbix, что покрывает большую часть команд API.
 
-### Подпакет 'connectionzabbixagent'
+## Подпакет 'connectionzabbixagent'
 
 Подпакет '_connectionzabbixagent_' позволяет отправлять некоторые данные Zabbix серверу через официального zabbix-агента.
+
+## Установка пакета
+
+Для того что бы установить пакет версии v2 нужно выполнить:
+
+```bash
+go get github.com/av-belyakov/zabbixapicommunicator/v2
+```
