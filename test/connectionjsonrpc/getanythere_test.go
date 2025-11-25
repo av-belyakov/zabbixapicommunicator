@@ -76,11 +76,22 @@ func TestGetAnyThereData(t *testing.T) {
 	})
 
 	t.Run("Тест 1. Получить информацию по API", func(t *testing.T) {
-		data, err := zc.GetAPIInfo(t.Context())
+		res, err := zc.GetAPIInfo(t.Context())
 		assert.NoError(t, err)
 
-		fmt.Println("Zabbix API informetion:", string(data))
+		data, errMsg, err := connjsonrpc.NewResponseAPIInfo().Get(res)
+		assert.NoError(t, err)
 
+		if errMsg.Error.Message != "" {
+			fmt.Printf(
+				"Request error, code:%d, message:'%s', data:'%s'\n",
+				errMsg.Error.Code,
+				errMsg.Error.Message,
+				errMsg.Error.Data,
+			)
+		}
+
+		fmt.Printf("Zabbix API informetion:'%s'\n", data.Result)
 	})
 
 	t.Run("Тест 2. Получить список групп хостов", func(t *testing.T) {

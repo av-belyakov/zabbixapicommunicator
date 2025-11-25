@@ -11,6 +11,13 @@ type ResponseError struct {
 	ID      int    `json:"id"`
 }
 
+// ResponseAPIInfo ответное сообщение на запрос GetAPIInfo
+type ResponseAPIInfo struct {
+	Result  string `json:"result"`
+	JsonRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+}
+
 // ResponseCreateHostGroup ответ на запрос создания группы хостов
 type ResponseCreateHostGroup struct {
 	Result struct {

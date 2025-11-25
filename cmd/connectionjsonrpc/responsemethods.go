@@ -6,6 +6,28 @@ import (
 	"github.com/av-belyakov/zabbixapicommunicator/v2/internal/supportingfunctions"
 )
 
+// NewResponseAPIInfo ответ на запрос с целью получения информации о API
+func NewResponseAPIInfo() *ResponseAPIInfo {
+	return &ResponseAPIInfo{}
+}
+
+// Get получить информацию о API
+func (r *ResponseAPIInfo) Get(b []byte) (*ResponseAPIInfo, *ResponseError, error) {
+	res := &ResponseAPIInfo{}
+	resErr := &ResponseError{}
+
+	res, resErr, err := supportingfunctions.ResponseUnmarchal(b, res, resErr)
+
+	//если нет ошибок но ответ попрежнему пустой
+	if res.Result == "" {
+		err = json.Unmarshal(b, resErr)
+
+		return res, resErr, err
+	}
+
+	return res, resErr, nil
+}
+
 // NewResponseCreateHostGroup ответ на создание группы хостов
 func NewResponseCreateHostGroup() *ResponseCreateHostGroup {
 	return &ResponseCreateHostGroup{}
