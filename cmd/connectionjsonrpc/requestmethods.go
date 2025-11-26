@@ -63,7 +63,7 @@ func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param stri
 			}`, param)))
 }
 
-// ActionDelete удаление действий установленных ранее.
+// ActionDelete удаление действий.
 // Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/delete.
 // В сигнатуре функции перечень id является идентификатор ранее установленных тригеров

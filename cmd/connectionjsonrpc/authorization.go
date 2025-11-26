@@ -42,7 +42,7 @@ func (api *ZabbixConnectionJsonRPC) AuthorizationStart(ctx context.Context) erro
 			}
 		}
 
-		return fmt.Errorf("error authorization, (%s %s)", shortMsg, fullMsg)
+		return fmt.Errorf("error authorization (%s %s)", shortMsg, fullMsg)
 	}
 
 	api.authorizationHash = result.Result

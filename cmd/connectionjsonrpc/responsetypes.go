@@ -2,13 +2,13 @@ package connectionjsonrpc
 
 // ResponseError общее описание ошибок
 type ResponseError struct {
-	Error struct {
+	JsonRPC string `json:"jsonrpc"`
+	Error   struct {
 		Message string `json:"message"`
 		Data    string `json:"data"`
 		Code    int    `json:"code"`
 	} `json:"error"`
-	JsonRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
+	ID int `json:"id"`
 }
 
 // ResponseAPIInfo ответное сообщение на запрос GetAPIInfo
@@ -77,11 +77,11 @@ type ResponseUpdateHost struct {
 
 // ResponseDeleteGroupHost ответное сообщение на запрос удаления группы хостов
 type ResponseDeleteGroupHost struct {
-	Result struct {
+	JsonRPC string `json:"jsonrpc"`
+	Result  struct {
 		GroupIds []int `json:"groupids"`
 	} `json:"result"`
-	JsonRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
+	ID int `json:"id"`
 }
 
 // ResponseDeleteHost ответное сообщение на запрос удаления хостов
