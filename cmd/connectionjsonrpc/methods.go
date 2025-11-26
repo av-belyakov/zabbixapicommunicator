@@ -8,9 +8,18 @@ import (
 //******************* опциональные функции ***********************
 
 // WithTLS использовать TLS
-func WithTLS(v bool) zabbixConnectionOptions {
+func WithTLS() zabbixConnectionOptions {
 	return func(api *ZabbixConnectionJsonRPC) error {
-		api.isTls = v
+		api.isTls = true
+
+		return nil
+	}
+}
+
+// WithInsecureSkipVerify игнорировать проверку сертификата
+func WithInsecureSkipVerify() zabbixConnectionOptions {
+	return func(api *ZabbixConnectionJsonRPC) error {
+		api.isCertSkipVerify = true
 
 		return nil
 	}

@@ -6,6 +6,7 @@ import (
 	"log"
 	"maps"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,13 +36,22 @@ func TestGetData(t *testing.T) {
 		}
 	)
 
-	if err := gotenv.Load(".prod-env"); err != nil {
+	if err := gotenv.Load(".env.prod"); err != nil {
 		log.Fatalln(err)
 	}
 
 	zHost := os.Getenv("GO_TESTZABBIX_HOST")
 	if zHost == "" {
 		log.Fatalln("environment variable 'GO_TESTZABBIX_HOST' cannot be empty")
+	}
+
+	tmpZPort := os.Getenv("GO_TESTZABBIX_PORT")
+	if tmpZPort == "" {
+		log.Fatalln("environment variable 'GO_TESTZABBIX_PORT' cannot be empty")
+	}
+	zPort, err := strconv.Atoi(tmpZPort)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	zUser := os.Getenv("GO_TESTZABBIX_USER")
@@ -61,7 +71,10 @@ func TestGetData(t *testing.T) {
 
 	t.Run("Тест 0. Инициализация соединения и получение авторизационного токена", func(t *testing.T) {
 		zc, err = connjsonrpc.NewConnect(
+			connjsonrpc.WithTLS(),
+			connjsonrpc.WithInsecureSkipVerify(),
 			connjsonrpc.WithHost(zHost),
+			connjsonrpc.WithPort(zPort),
 			connjsonrpc.WithConnectionTimeout(30),
 			connjsonrpc.WithLogin(zUser),
 			connjsonrpc.WithPasswd(zPasswd),

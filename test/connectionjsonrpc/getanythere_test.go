@@ -28,7 +28,7 @@ func TestGetAnyThereData(t *testing.T) {
 		nameGroups  map[string]string           = map[string]string{}
 	)
 
-	if err := gotenv.Load(".env"); err != nil {
+	if err := gotenv.Load(".env.test"); err != nil {
 		log.Fatalln(err)
 	}
 

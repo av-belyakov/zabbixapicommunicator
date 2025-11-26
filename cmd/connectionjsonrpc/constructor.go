@@ -1,6 +1,7 @@
 package connectionjsonrpc
 
 import (
+	"cmp"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -33,8 +34,9 @@ func NewConnect(opts ...zabbixConnectionOptions) (*ZabbixConnectionJsonRPC, erro
 		}
 
 		tlsConf = &tls.Config{
-			//InsecureSkipVerify: true, //пока пропускаем верификацию по сертификату
-			RootCAs: certPool,
+			// верификация сертификатов
+			InsecureSkipVerify: cmp.Or(api.isCertSkipVerify, false),
+			RootCAs:            certPool,
 		}
 	}
 

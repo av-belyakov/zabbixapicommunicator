@@ -21,6 +21,7 @@ type ZabbixConnectionJsonRPC struct {
 	authorizationHash string
 	port              int
 	isTls             bool
+	isCertSkipVerify  bool
 }
 
 // ZabbixAuthorizationData результат авторизации
