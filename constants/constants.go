@@ -2,5 +2,5 @@ package constants
 
 const (
 	Package_Name    = "zabbixapicommunicator"
-	Packagr_Version = "v2.4.1"
+	Packagr_Version = "v2.3.2"
 )
