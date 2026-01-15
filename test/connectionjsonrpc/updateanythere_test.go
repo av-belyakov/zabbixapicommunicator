@@ -54,7 +54,7 @@ func TestUpdateAnyThere(t *testing.T) {
 		err error
 	)
 
-	if err := gotenv.Load(".env"); err != nil {
+	if err := gotenv.Load(".env.test"); err != nil {
 		log.Fatalln(err)
 	}
 
