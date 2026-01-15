@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -547,16 +548,29 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroups(ctx context.Contex
 }
 
 // UpdateHostParameterTags обновление в хосте параметра 'теги' (обязательны права супер-администратора)
+// Если имя найденного тега совпадает с именем принятого, для обработки, тега, то значение найденного тега
+// будет переписано значением принятого тега.
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
-	res, err := api.GetHostTags(ctx, hostId)
+	tags, err := api.GetHostTags(ctx, hostId)
 	if err != nil {
 		return nil, err
 	}
 
-	//дополняем запрос уже имеющимеся в хосте тегами
-	opt.Tag = append(opt.Tag, res...)
+	for _, v := range opt.Tag {
+		index := slices.IndexFunc(tags, func(tag Tag) bool {
+			return tag.Tag == v.Tag
+		})
 
-	b, err := json.Marshal(&opt.Tag)
+		if index != -1 {
+			tags[index] = v
+
+			continue
+		}
+
+		tags = append(tags, v)
+	}
+
+	b, err := json.Marshal(tags)
 	if err != nil {
 		return nil, err
 	}
