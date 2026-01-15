@@ -67,7 +67,7 @@ func TestCreateAnyThere(t *testing.T) {
 		newTestHostId   []string
 	)
 
-	if err := gotenv.Load(".env"); err != nil {
+	if err := gotenv.Load(".env.test"); err != nil {
 		log.Fatalln(err)
 	}
 

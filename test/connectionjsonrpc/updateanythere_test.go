@@ -193,18 +193,6 @@ func TestUpdateAnyThere(t *testing.T) {
 			//fmt.Println("ID testHostGroupId =", testHostGroupId)
 			//fmt.Println("ID testAdditionalHostGroupId =", testAdditionalHostGroupId)
 
-			/*
-				План работы:
-				1. Поправить методы обновления, в настоящее время при обновлении
-				какого либо параметра параметр перезатирается новым значением,
-				старое значение не сохраняется так как метод не получает имеющиеся значения.
-
-				2. Исправить ошибку 'Incorrect arguments passed to function.' при обновлении
-				параметра 'интерфейсы'.
-
-				3. Добавить метод обновления параметра 'inventory'. Очень нужный.
-			*/
-
 			//добавляем дополнительную группу хостов в хост
 			res, err = zc.UpdateHostParameterGroups(
 				t.Context(),
