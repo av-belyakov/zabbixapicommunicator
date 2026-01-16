@@ -213,7 +213,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostGroups(ctx context.Context, hostId st
 	}
 
 	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 {
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
 		return nil, errors.New(errMsg.Error.Message)
 	}
 
@@ -223,6 +223,44 @@ func (api *ZabbixConnectionJsonRPC) GetHostGroups(ctx context.Context, hostId st
 	}
 
 	return finalyResponse, nil
+}
+
+// GetFullInformationAboutHost полная информация о хосте
+func (api *ZabbixConnectionJsonRPC) GetFullInformationAboutHost(ctx context.Context, hostId string) (*ResponseHostList, error) {
+	res := &ResponseHostList{}
+	errMsg := &ResponseError{}
+
+	// получаем полную информацию о хосте
+	b, err := api.CustomRequest(
+		ctx,
+		"host.get",
+		fmt.Sprintf(`{
+			"hostids": "%s",
+	        "selectTags": "extend",
+	        "evaltype": 0
+			}`, hostId),
+	)
+	if err != nil {
+		return res, err
+	}
+
+	fmt.Printf("methods 'ZabbixConnectionJsonRPC.GetFullInformationAboutHost', RESPONCE: '%+v'\n", string(b))
+
+	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	//если нет ошибок, но ответ попрежнему пустой, проверяем на наличие ошибки в ответе
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
+		return nil, errors.New(errMsg.Error.Message)
+	}
+
+	if len(res.Result) == 0 {
+		return res, fmt.Errorf("the host with id '%s' was not found", hostId)
+	}
+
+	return res, nil
 }
 
 // GetHostTags список тегов у определённого хоста
@@ -237,7 +275,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 		ID      int    `json:"id"`
 	}{}
 
-	//получаем информацию о хосте
+	// получаем полную информацию о хосте
 	b, err := api.CustomRequest(
 		ctx,
 		"host.get",
@@ -249,19 +287,16 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 			}`, hostId),
 	)
 	if err != nil {
-		fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', 111 error: ", err)
-
 		return nil, err
 	}
 
+	fmt.Printf("G_ method 'ZabbixConnectionJsonRPC.GetHostTags', recived response:'%s'\n", string(b))
+
+	// преобразуем полную информацию о хосте в структуру
 	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
 	if err != nil {
-		fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', 222 error: ", err)
-
 		return nil, err
 	}
-
-	fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', errMsg: ", errMsg.Error.Message)
 
 	//если нет ошибок, но ответ попрежнему пустой
 	if len(res.Result) == 0 && errMsg.Error.Message != "" {
@@ -309,7 +344,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId st
 	}
 
 	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 {
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
 		return nil, errors.New(errMsg.Error.Message)
 	}
 
@@ -347,7 +382,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostInterface(ctx context.Context, hostId
 	}
 
 	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 {
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
 		return nil, errors.New(errMsg.Error.Message)
 	}
 
@@ -386,7 +421,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostInventory(ctx context.Context, hostId
 	}
 
 	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 {
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
 		return nil, errors.New(errMsg.Error.Message)
 	}
 
@@ -563,6 +598,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context,
 
 		return nil, err
 	}
+
+	fmt.Printf("methods 'ZabbixConnectionJsonRPC.UpdateHostParameterTags' RECEIVED TAGS:'%+v'\n", tags)
 
 	for _, v := range opt.Tag {
 		index := slices.IndexFunc(tags, func(tag Tag) bool {

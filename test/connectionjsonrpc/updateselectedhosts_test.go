@@ -178,7 +178,7 @@ func TestUpdateSelectedHosts(t *testing.T) {
 	})
 
 	t.Run("Тест 5. Получить информацию по тегам для тестового хоста с определённым номером", func(t *testing.T) {
-		hostId := "11616"
+		hostId := "10957"
 
 		tags, err := zc.GetHostTags(
 			t.Context(),
