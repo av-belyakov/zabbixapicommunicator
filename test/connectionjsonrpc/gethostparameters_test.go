@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
-	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 	"github.com/stretchr/testify/assert"
 	"github.com/subosito/gotenv"
 )
@@ -121,7 +120,7 @@ func TestGetHostParameters(t *testing.T) {
 
 		//fmt.Printf("Add group hosts, response:'%s'\n", string(res))
 
-		hostGroup, errMsg, err := responsejsonrpc.NewResponseCreateHostGroup().Get(res)
+		hostGroup, errMsg, err := connjsonrpc.NewResponseCreateHostGroup().Get(res)
 		assert.NoError(t, err)
 
 		isExist := strings.ContainsAny(errMsg.Error.Message, "already exists")

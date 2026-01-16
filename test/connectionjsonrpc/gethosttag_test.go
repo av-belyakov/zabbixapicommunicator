@@ -14,7 +14,6 @@ import (
 	"github.com/subosito/gotenv"
 
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
-	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 )
 
 func TestGetHostTag(t *testing.T) {
@@ -98,7 +97,7 @@ func TestGetHostTag(t *testing.T) {
 		res, err := zc.CreateHostGroup(t.Context(), testHostGroupName)
 		assert.NoError(t, err)
 
-		hgs, errMsg, err := responsejsonrpc.NewResponseCreateHostGroup().Get(res)
+		hgs, errMsg, err := connjsonrpc.NewResponseCreateHostGroup().Get(res)
 		assert.NoError(t, err)
 
 		isExist := strings.ContainsAny(errMsg.Error.Message, "already exists")
@@ -119,7 +118,7 @@ func TestGetHostTag(t *testing.T) {
 
 		fmt.Println("Create test host, RAW response:", string(res))
 
-		rch, errMsg, err := responsejsonrpc.NewResponseCreateHost().Get(res)
+		rch, errMsg, err := connjsonrpc.NewResponseCreateHost().Get(res)
 		assert.NoError(t, err)
 		assert.Greater(t, len(rch.Result.HostIds), 0)
 

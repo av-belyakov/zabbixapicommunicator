@@ -63,16 +63,40 @@ func TestGetHostFullInformation(t *testing.T) {
 	})
 
 	t.Run("Тест 2. Запрос полной информации о существующем хосте", func(t *testing.T) {
-		res, err := zc.GetFullInformationAboutHost(t.Context(), "11259")
+		res, err := zc.GetFullInformationAboutHost(t.Context(), "11241")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res.Result)
 
-		fmt.Println("Result:", res)
+		fmt.Printf("\n--- Result:'%#v'\n", res)
 	})
 
 	t.Run("Тест 3. Запрос полной информации о не существующем хосте", func(t *testing.T) {
 		res, err := zc.GetFullInformationAboutHost(t.Context(), "11616")
 		assert.Error(t, err)
 		assert.Empty(t, res.Result)
+	})
+
+	t.Run("Тест 4. Запрос макросов хоста", func(t *testing.T) {
+		res, err := zc.GetHostMacros(t.Context(), "11241")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, res)
+
+		fmt.Println("Macros:", res)
+	})
+
+	t.Run("Тест 5. Запрос тегов хоста", func(t *testing.T) {
+		res, err := zc.GetHostTags(t.Context(), "11241")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, res)
+
+		fmt.Println("Tegs:", res)
+	})
+
+	t.Run("Тест 6. Запрос интерфейсов хоста", func(t *testing.T) {
+		res, err := zc.GetHostInterface(t.Context(), "11241")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, res)
+
+		fmt.Println("Interfaces:", res)
 	})
 }

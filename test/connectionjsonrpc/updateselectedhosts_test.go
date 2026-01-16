@@ -13,7 +13,6 @@ import (
 
 	"github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
-	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 	connjsonrpctest "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
 )
 
@@ -83,7 +82,7 @@ func TestUpdateSelectedHosts(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		data, errMsg, err := responsejsonrpc.NewResponseGetHostGroupList().Get(res)
+		data, errMsg, err := connjsonrpc.NewResponseGetHostGroupList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -118,7 +117,7 @@ func TestUpdateSelectedHosts(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
-		data, errMsg, err := responsejsonrpc.NewResponseGetHostList().Get(res)
+		data, errMsg, err := connjsonrpc.NewResponseGetHostList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -214,7 +213,7 @@ func TestUpdateSelectedHosts(t *testing.T) {
 		for _, v := range hostList.Result {
 			hostIds = append(hostIds, v.HostId)
 
-			if num <= 12 {
+			if num <= 10 {
 				fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
 
 				num++

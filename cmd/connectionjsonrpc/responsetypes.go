@@ -53,7 +53,9 @@ type HostGroupInformation struct {
 
 // ResponseHostList ответное сообщение со списком хостов
 type ResponseHostList struct {
-	Result []HostInformation `json:"result"`
+	Result  []HostInformation `json:"result"`
+	JsonRPC string            `json:"jsonrpc"`
+	ID      int               `json:"id"`
 }
 
 // ResponseUpdateHostGroup ответное сообщение на запрос обновления группы хостов
@@ -88,17 +90,6 @@ type ResponseDeleteGroupHost struct {
 type ResponseDeleteHost struct {
 	Result struct {
 		HostIds []string `json:"hostids"`
-	} `json:"result"`
-	JsonRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-}
-
-// ResponseGetInterfaces ответное сообщение на запрос интерфейсов
-type ResponseGetInterfaces struct {
-	Result []struct {
-		Host       string              `json:"host"`
-		HostId     string              `json:"hostid"`
-		Interfaces []ResponseInterface `json:"interfaces"`
 	} `json:"result"`
 	JsonRPC string `json:"jsonrpc"`
 	ID      int    `json:"id"`

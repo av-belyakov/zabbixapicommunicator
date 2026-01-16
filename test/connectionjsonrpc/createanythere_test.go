@@ -15,7 +15,6 @@ import (
 	"github.com/subosito/gotenv"
 
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
-	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 )
 
 func TestCreateAnyThere(t *testing.T) {
@@ -124,7 +123,7 @@ func TestCreateAnyThere(t *testing.T) {
 
 			//fmt.Printf("Add group hosts, response:'%s'\n", string(res))
 
-			_, errMsg, err := responsejsonrpc.NewResponseCreateHostGroup().Get(res)
+			_, errMsg, err := connjsonrpc.NewResponseCreateHostGroup().Get(res)
 			assert.NoError(t, err)
 
 			isExist := strings.ContainsAny(errMsg.Error.Message, "already exists")
@@ -139,7 +138,7 @@ func TestCreateAnyThere(t *testing.T) {
 		res, err := zc.GetFullHostGroupList(t.Context())
 		assert.NoError(t, err)
 
-		data, errMsg, err := responsejsonrpc.NewResponseGetHostGroupList().Get(res)
+		data, errMsg, err := connjsonrpc.NewResponseGetHostGroupList().Get(res)
 		assert.NoError(t, err)
 
 		if errMsg.Error.Message != "" {
@@ -197,7 +196,7 @@ func TestCreateAnyThere(t *testing.T) {
 			}
 
 			//fmt.Println("Response:", string(res))
-			rch, errMsg, err := responsejsonrpc.NewResponseCreateHost().Get(res)
+			rch, errMsg, err := connjsonrpc.NewResponseCreateHost().Get(res)
 			assert.NoError(t, err)
 
 			if errMsg.Error.Message != "" {

@@ -237,14 +237,15 @@ func (api *ZabbixConnectionJsonRPC) GetFullInformationAboutHost(ctx context.Cont
 		fmt.Sprintf(`{
 			"hostids": "%s",
 	        "selectTags": "extend",
+	        "selectMacros": "extend",
+			"selectInventory": "extend",
+	        "selectInterfaces": "extend",
 	        "evaltype": 0
 			}`, hostId),
 	)
 	if err != nil {
 		return res, err
 	}
-
-	fmt.Printf("methods 'ZabbixConnectionJsonRPC.GetFullInformationAboutHost', RESPONCE: '%+v'\n", string(b))
 
 	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
 	if err != nil {
@@ -265,42 +266,13 @@ func (api *ZabbixConnectionJsonRPC) GetFullInformationAboutHost(ctx context.Cont
 
 // GetHostTags список тегов у определённого хоста
 func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId string) ([]Tag, error) {
-	errMsg := &ResponseError{}
-	res := &struct {
-		Result []struct {
-			Tags   []Tag  `json:"tags"`
-			HostId string `json:"hostid"`
-		} `json:"result"`
-		JsonRPC string `json:"jsonrpc"`
-		ID      int    `json:"id"`
-	}{}
-
-	// получаем полную информацию о хосте
-	b, err := api.CustomRequest(
-		ctx,
-		"host.get",
-		fmt.Sprintf(`{
-			"hostids": "%s",
-	        "selectTags": "extend",
-	        "evaltype": 0,
-			"tags": []
-			}`, hostId),
-	)
+	res, err := api.GetFullInformationAboutHost(ctx, hostId)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("G_ method 'ZabbixConnectionJsonRPC.GetHostTags', recived response:'%s'\n", string(b))
-
-	// преобразуем полную информацию о хосте в структуру
-	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 && errMsg.Error.Message != "" {
-		return nil, errors.New(errMsg.Error.Message)
+	if len(res.Result) == 0 {
+		return nil, fmt.Errorf("the host with id '%s' was not found", hostId)
 	}
 
 	finalyResponse := []Tag(nil)
@@ -313,39 +285,13 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 
 // GetHostMacros список макросов определённого хоста
 func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId string) ([]Macro, error) {
-	errMsg := &ResponseError{}
-	res := &struct {
-		Result []struct {
-			Macros []Macro `json:"macros"`
-			HostId string  `json:"hostid"`
-		} `json:"result"`
-		JsonRPC string `json:"jsonrpc"`
-		ID      int    `json:"id"`
-	}{}
-
-	//получаем информацию о хосте
-	b, err := api.CustomRequest(
-		ctx,
-		"host.get",
-		fmt.Sprintf(`{
-			"hostids": "%s",
-	        "selectMacros": "extend",
-	        "evaltype": 0,
-			"macros": []
-			}`, hostId),
-	)
+	res, err := api.GetFullInformationAboutHost(ctx, hostId)
 	if err != nil {
 		return nil, err
 	}
 
-	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 && errMsg.Error.Message != "" {
-		return nil, errors.New(errMsg.Error.Message)
+	if len(res.Result) == 0 {
+		return nil, fmt.Errorf("the host with id '%s' was not found", hostId)
 	}
 
 	finalyResponse := []Macro(nil)
@@ -358,32 +304,13 @@ func (api *ZabbixConnectionJsonRPC) GetHostMacros(ctx context.Context, hostId st
 
 // GetHostInterface список интерфейсов хоста
 func (api *ZabbixConnectionJsonRPC) GetHostInterface(ctx context.Context, hostId string) ([]ResponseInterface, error) {
-	errMsg := &ResponseError{}
-	res := &ResponseGetInterfaces{}
-
-	//получаем информацию о хосте
-	b, err := api.CustomRequest(
-		ctx,
-		"host.get",
-		fmt.Sprintf(`{
-			"hostids": "%s",
-	        "selectInterfaces": "extend",
-	        "evaltype": 0,
-			"interfaces": []
-			}`, hostId),
-	)
+	res, err := api.GetFullInformationAboutHost(ctx, hostId)
 	if err != nil {
 		return nil, err
 	}
 
-	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 && errMsg.Error.Message != "" {
-		return nil, errors.New(errMsg.Error.Message)
+	if len(res.Result) == 0 {
+		return nil, fmt.Errorf("the host with id '%s' was not found", hostId)
 	}
 
 	finalyResponse := []ResponseInterface(nil)
