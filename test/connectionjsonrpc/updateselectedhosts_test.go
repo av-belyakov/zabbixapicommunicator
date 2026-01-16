@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/subosito/gotenv"
 
+	"github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
 	connjsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc"
 	responsejsonrpc "github.com/av-belyakov/zabbixapicommunicator/v2/cmd/connectionjsonrpc/responses"
 	connjsonrpctest "github.com/av-belyakov/zabbixapicommunicator/v2/test/connectionjsonrpc"
@@ -127,6 +128,7 @@ func TestUpdateSelectedHosts(t *testing.T) {
 		}
 		assert.Greater(t, len(data.Result), 0)
 
+		fmt.Println("Total host groups:", len(data.Result), ", print first 10 items...")
 		var num int = 1
 		//список хостов
 		for _, v := range data.Result {
@@ -136,15 +138,20 @@ func TestUpdateSelectedHosts(t *testing.T) {
 				Name:   v.Name,
 			})
 
-			fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
+			if num <= 10 {
+				fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
+
+				continue
+			}
+
 			num++
 		}
 
 		assert.Greater(t, len(data.Result), 0)
 	})
 
-	t.Run("Тест 4. Получить информацию по тегам тестового хоста", func(t *testing.T) {
-		hostId := "10897"
+	t.Run("Тест 4. Заменить информацию по тегам тестового хоста", func(t *testing.T) {
+		hostId := "11616" //"10897"
 
 		zc.UpdateHostParameterTags(
 			t.Context(),
@@ -168,5 +175,52 @@ func TestUpdateSelectedHosts(t *testing.T) {
 		assert.NotEmpty(t, tagList)
 
 		fmt.Println("tagList:", tagList)
+	})
+
+	t.Run("Тест 5. Получить информацию по тегам для тестового хоста с определённым номером", func(t *testing.T) {
+		hostId := "11616"
+
+		tags, err := zc.GetHostTags(
+			t.Context(),
+			hostId,
+		)
+
+		//fmt.Println("___ ERROR:", err, "____")
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tags)
+
+		fmt.Println("tagList:", tags)
+	})
+
+	t.Run("Тест 6. Получить список всех хостов", func(t *testing.T) {
+		hostIds := []string(nil)
+
+		res, err := zc.GetHosts(t.Context())
+		assert.NoError(t, err)
+
+		hostList, errMsg, err := connectionjsonrpc.NewResponseGetHostList().Get(res)
+		assert.NoError(t, err)
+
+		if errMsg.Error.Message != "" {
+			fmt.Printf("Request error, code:%d, message:'%s', data:'%s'\n", errMsg.Error.Code, errMsg.Error.Message, errMsg.Error.Data)
+
+			assert.Fail(t, "request execution error", errMsg.Error.Message, errMsg.Error.Data)
+		}
+		assert.Greater(t, len(hostList.Result), 0)
+
+		fmt.Println("Total hosts:", len(hostList.Result), ", print first 20 items...")
+		var num int = 1
+		for _, v := range hostList.Result {
+			hostIds = append(hostIds, v.HostId)
+
+			if num <= 12 {
+				fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
+
+				num++
+			}
+		}
+
+		fmt.Println("hosts id:", hostIds)
 	})
 }

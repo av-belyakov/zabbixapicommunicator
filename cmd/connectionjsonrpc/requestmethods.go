@@ -249,16 +249,22 @@ func (api *ZabbixConnectionJsonRPC) GetHostTags(ctx context.Context, hostId stri
 			}`, hostId),
 	)
 	if err != nil {
+		fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', 111 error: ", err)
+
 		return nil, err
 	}
 
 	res, errMsg, err = supportingfunctions.ResponseUnmarchal(b, res, errMsg)
 	if err != nil {
+		fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', 222 error: ", err)
+
 		return nil, err
 	}
 
+	fmt.Println("methods 'ZabbixConnectionJsonRPC.GetHostTags', errMsg: ", errMsg.Error.Message)
+
 	//если нет ошибок, но ответ попрежнему пустой
-	if len(res.Result) == 0 {
+	if len(res.Result) == 0 && errMsg.Error.Message != "" {
 		return nil, errors.New(errMsg.Error.Message)
 	}
 
@@ -553,6 +559,8 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroups(ctx context.Contex
 func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context, hostId string, opt Tags) ([]byte, error) {
 	tags, err := api.GetHostTags(ctx, hostId)
 	if err != nil {
+		fmt.Printf("methods 'ZabbixConnectionJsonRPC.UpdateHostParameterTags' 111 ERROR:'%T', '%+v'\n", err, err)
+
 		return nil, err
 	}
 
@@ -570,8 +578,12 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context,
 		tags = append(tags, v)
 	}
 
+	fmt.Println("methods 'ZabbixConnectionJsonRPC.UpdateHostParameterTags' tags:", tags)
+
 	b, err := json.Marshal(tags)
 	if err != nil {
+		fmt.Println("methods 'ZabbixConnectionJsonRPC.UpdateHostParameterTags' 222 ERROR:", err)
+
 		return nil, err
 	}
 
