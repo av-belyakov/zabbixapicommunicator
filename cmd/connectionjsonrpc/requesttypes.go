@@ -71,9 +71,9 @@ type Tags struct {
 
 // Tag опции тега
 type Tag struct {
-	Tag       string `json:"tag"`
-	Value     string `json:"value"`
-	Automatic string `json:"automatic"`
+	Tag   string `json:"tag"`
+	Value string `json:"value"`
+	//Automatic string `json:"automatic"`
 }
 
 // Template опции шаблонов
