@@ -174,6 +174,10 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 	  			"method":"host.get",
 	  			"params": {
 					"output":"extend",
+					"selectTags": "extend",
+					"selectMacros": "extend",
+					"selectInventory": "extend",
+					"selectInterfaces": "extend",
 					"groupids": [%s]
 				},
 	  			"id":1

@@ -128,6 +128,8 @@ func TestGetData(t *testing.T) {
 		res, err := zc.GetHostList(t.Context(), listGroupsId...)
 		assert.NoError(t, err)
 
+		//		fmt.Printf("RAW DATA:'%+v'\n", string(res))
+
 		data, errMsg, err := connjsonrpc.NewResponseGetHostList().Get(res)
 		assert.NoError(t, err)
 
@@ -140,13 +142,26 @@ func TestGetData(t *testing.T) {
 		var num int = 1
 		//список хостов
 		for _, v := range data.Result {
+			if num <= 13 {
+				fmt.Printf("STRUCT:'%+v'\n", v)
+
+				fmt.Printf(
+					"%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\nMacros:'%v'\n",
+					num,
+					v.HostId,
+					v.Host,
+					v.Name,
+					v.Macros,
+				)
+
+			}
+
 			information.Hosts = append(information.Hosts, connjsonrpctest.HostInfo{
 				HostId: v.HostId,
 				Host:   v.Host,
 				Name:   v.Name,
 			})
 
-			fmt.Printf("%d.\n\tHostId:'%s'\n\tHost:'%s'\n\tName:'%s'\n", num, v.HostId, v.Host, v.Name)
 			num++
 		}
 
