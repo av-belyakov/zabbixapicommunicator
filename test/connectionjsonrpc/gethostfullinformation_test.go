@@ -99,4 +99,10 @@ func TestGetHostFullInformation(t *testing.T) {
 
 		fmt.Println("Interfaces:", res)
 	})
+
+	t.Run("Тест 7. Завершение сеанса авторизации", func(t *testing.T) {
+		ok, err := zc.Logout(t.Context())
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
 }

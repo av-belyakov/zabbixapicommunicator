@@ -29,6 +29,9 @@ func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.
 
 // postRequest выполняет POST запрос
 func (api *ZabbixConnectionJsonRPC) postRequest(ctx context.Context, data *strings.Reader) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, api.connectionTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, "POST", api.url, data)
 	if err != nil {
 		return []byte{}, err

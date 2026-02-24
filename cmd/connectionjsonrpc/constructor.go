@@ -11,7 +11,7 @@ import (
 
 func NewConnect(opts ...zabbixConnectionOptions) (*ZabbixConnectionJsonRPC, error) {
 	api := &ZabbixConnectionJsonRPC{
-		connectionTimeout: (1 * time.Second),
+		connectionTimeout: (3 * time.Second),
 		applicationType:   "application/json-rpc",
 	}
 

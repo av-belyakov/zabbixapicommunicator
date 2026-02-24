@@ -86,6 +86,9 @@ func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...stri
 
 // GetAPIInfo информация о версии API (запрос должен выполнятся БЕЗ авторизации)
 func (api *ZabbixConnectionJsonRPC) GetAPIInfo(ctx context.Context) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, api.connectionTimeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, "POST", api.url, strings.NewReader(`{
     		"jsonrpc": "2.0",
     		"method": "apiinfo.version",
