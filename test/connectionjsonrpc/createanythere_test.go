@@ -173,21 +173,24 @@ func TestCreateAnyThere(t *testing.T) {
 		}
 
 		for k, v := range newTestHosts {
-			res, err := zc.CreateHost(t.Context(), connjsonrpc.CreateHostOptionsRequest{
-				Host:   k,
-				Groups: groups,
-				Interfaces: connjsonrpc.InterfaceOptionsRequest{
-					IP:    v.Ip,
-					Port:  fmt.Sprint(v.Port),
-					DNS:   v.DNS,
-					Type:  1,
-					Main:  1,
-					Useip: 1,
-					Details: connjsonrpc.DetailsOptions{
-						Version: 1,
+			res, err := zc.CreateHost(
+				t.Context(),
+				connjsonrpc.CreateHostOptionsRequest{
+					Host:   k,
+					Groups: groups,
+					Interfaces: connjsonrpc.InterfaceOptionsRequest{
+						IP:    v.Ip,
+						Port:  fmt.Sprint(v.Port),
+						DNS:   v.DNS,
+						Type:  1,
+						Main:  1,
+						Useip: 1,
+						Details: connjsonrpc.DetailsOptions{
+							Version: 1,
+						},
 					},
-				},
-			})
+					IpmiPrivilege: 2,
+				})
 			assert.NoError(t, err)
 			if err != nil {
 				isError = true

@@ -52,9 +52,9 @@ func TestGetHostFullInformation(t *testing.T) {
 		zc, err = connjsonrpc.NewConnect(
 			connjsonrpc.WithHost(zHost),
 			connjsonrpc.WithPort(zPort),
-			connjsonrpc.WithConnectionTimeout(30),
 			connjsonrpc.WithLogin(zUser),
 			connjsonrpc.WithPasswd(zPasswd),
+			connjsonrpc.WithConnectionTimeout(30),
 		)
 		assert.NoError(t, err)
 
@@ -63,7 +63,7 @@ func TestGetHostFullInformation(t *testing.T) {
 	})
 
 	t.Run("Тест 2. Запрос полной информации о существующем хосте", func(t *testing.T) {
-		res, err := zc.GetFullInformationAboutHost(t.Context(), "11241")
+		res, err := zc.GetFullInformationAboutHost(t.Context(), "11762")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res.Result)
 
@@ -71,13 +71,13 @@ func TestGetHostFullInformation(t *testing.T) {
 	})
 
 	t.Run("Тест 3. Запрос полной информации о не существующем хосте", func(t *testing.T) {
-		res, err := zc.GetFullInformationAboutHost(t.Context(), "11616")
+		res, err := zc.GetFullInformationAboutHost(t.Context(), "98765")
 		assert.Error(t, err)
 		assert.Empty(t, res.Result)
 	})
 
 	t.Run("Тест 4. Запрос макросов хоста", func(t *testing.T) {
-		res, err := zc.GetHostMacros(t.Context(), "11241")
+		res, err := zc.GetHostMacros(t.Context(), "11762")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res)
 
@@ -85,7 +85,7 @@ func TestGetHostFullInformation(t *testing.T) {
 	})
 
 	t.Run("Тест 5. Запрос тегов хоста", func(t *testing.T) {
-		res, err := zc.GetHostTags(t.Context(), "11241")
+		res, err := zc.GetHostTags(t.Context(), "11762")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res)
 
@@ -93,7 +93,7 @@ func TestGetHostFullInformation(t *testing.T) {
 	})
 
 	t.Run("Тест 6. Запрос интерфейсов хоста", func(t *testing.T) {
-		res, err := zc.GetHostInterface(t.Context(), "11241")
+		res, err := zc.GetHostInterface(t.Context(), "11762")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res)
 

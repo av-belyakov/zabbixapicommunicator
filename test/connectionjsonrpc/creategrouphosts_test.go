@@ -67,9 +67,9 @@ func TestCreateGroupHosts(t *testing.T) {
 		zc, err = connjsonrpc.NewConnect(
 			connjsonrpc.WithPort(port),
 			connjsonrpc.WithHost(zHost),
-			connjsonrpc.WithConnectionTimeout(30),
 			connjsonrpc.WithLogin(zUser),
 			connjsonrpc.WithPasswd(zPasswd),
+			connjsonrpc.WithConnectionTimeout(30),
 		)
 		assert.NoError(t, err)
 
