@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// sendRequest обрабатывает запрос
-func (api *ZabbixConnectionJsonRPC) sendRequest(ctx context.Context, r *strings.Reader) ([]byte, error) {
+// SendRequest обрабатывает запрос
+func (api *ZabbixConnectionJsonRPC) SendRequest(ctx context.Context, r *strings.Reader) ([]byte, error) {
 	res, err := api.postRequest(ctx, r)
 	if err != nil {
 		// при возникновении ошибки пытаемся авторизоватся повторно,

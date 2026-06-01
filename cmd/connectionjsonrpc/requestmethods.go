@@ -20,7 +20,7 @@ import (
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/get.
 func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -37,7 +37,7 @@ func (api *ZabbixConnectionJsonRPC) ActionGet(ctx context.Context, param string)
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/create
 func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -53,7 +53,7 @@ func (api *ZabbixConnectionJsonRPC) ActionCreate(ctx context.Context, param stri
 // значениями. Подробнее о типах значений и их структуре можно узнать из официальной
 // документации https://www.zabbix.com/documentation/current/en/manual/api/reference/action/update.
 func (api *ZabbixConnectionJsonRPC) ActionUpdate(ctx context.Context, param string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -73,7 +73,7 @@ func (api *ZabbixConnectionJsonRPC) ActionDelete(ctx context.Context, id ...stri
 		return nil, errors.New("deletion cannot be performed, the list of IDs must not be empty")
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(
 			fmt.Sprintf(`{
@@ -126,7 +126,7 @@ func (api *ZabbixConnectionJsonRPC) GetAPIInfo(ctx context.Context) ([]byte, err
 // набор параметров подобных search, filter и т.д. Подробнее о формировании настраиваемого
 // запроса можно узнать из официальной документации https://www.zabbix.com/documentation/current/en/manual/api/reference
 func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method string, param string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -138,7 +138,7 @@ func (api *ZabbixConnectionJsonRPC) CustomRequest(ctx context.Context, method st
 
 // GetFullHostList весь список хостов
 func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(`{
 	  			"jsonrpc":"2.0",
@@ -152,7 +152,7 @@ func (api *ZabbixConnectionJsonRPC) GetFullHostList(ctx context.Context) ([]byte
 
 // GetGetHosts список хостов
 func (api *ZabbixConnectionJsonRPC) GetHosts(ctx context.Context) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(`{
 	  			"jsonrpc":"2.0",
@@ -170,7 +170,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostList(ctx context.Context, groupId ...
 		return nil, errors.New("value 'groupId' is not be empty")
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -364,7 +364,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostInventory(ctx context.Context, hostId
 
 // GetFullHostGroupList весь список групп хостов
 func (api *ZabbixConnectionJsonRPC) GetFullHostGroupList(ctx context.Context) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(`{
 	  			"jsonrpc":"2.0",
@@ -383,7 +383,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostGroup(ctx context.Context, filter Fil
 		return nil, err
 	}
 
-	return api.sendRequest(ctx, strings.NewReader(fmt.Sprintf(`{
+	return api.SendRequest(ctx, strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
 	  			"method":"hostgroup.get",
 	  			"params": {
@@ -397,7 +397,7 @@ func (api *ZabbixConnectionJsonRPC) GetHostGroup(ctx context.Context, filter Fil
 // CreateHostGroup создание группы хостов (обязательны права супер-администратора)
 // Подробное описание параметров https://www.zabbix.com/documentation/current/en/manual/api/reference/hostgroup/create
 func (api *ZabbixConnectionJsonRPC) CreateHostGroup(ctx context.Context, name string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -441,7 +441,7 @@ func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHo
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -453,7 +453,7 @@ func (api *ZabbixConnectionJsonRPC) CreateHost(ctx context.Context, opt CreateHo
 
 // UpdateHostGroup обновление группы хостов (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) UpdateHostGroup(ctx context.Context, groupId, name string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -473,7 +473,7 @@ func (api *ZabbixConnectionJsonRPC) CreateHostParameterInventory(ctx context.Con
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -509,7 +509,7 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterGroups(ctx context.Contex
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -550,7 +550,7 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterTags(ctx context.Context,
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -583,7 +583,7 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterMacro(ctx context.Context
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -644,7 +644,7 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterInterfaces(ctx context.Co
 		return nil, err
 	}
 
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -659,7 +659,7 @@ func (api *ZabbixConnectionJsonRPC) UpdateHostParameterInterfaces(ctx context.Co
 
 // DeleteHostGroup удаление группы хостов (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) DeleteHostGroup(ctx context.Context, groupId ...string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
@@ -671,7 +671,7 @@ func (api *ZabbixConnectionJsonRPC) DeleteHostGroup(ctx context.Context, groupId
 
 // DeleteHost удаление хостов (обязательны права супер-администратора)
 func (api *ZabbixConnectionJsonRPC) DeleteHost(ctx context.Context, hostId ...string) ([]byte, error) {
-	return api.sendRequest(
+	return api.SendRequest(
 		ctx,
 		strings.NewReader(fmt.Sprintf(`{
 	  			"jsonrpc":"2.0",
